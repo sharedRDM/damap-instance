@@ -4,7 +4,10 @@ env:
   REGISTRY: ghcr.io
 
 on:
-
+  push:
+    branches:
+      - main
+      - '1-proposal-structure'
   workflow_dispatch:
     inputs:
       branch:
@@ -22,28 +25,9 @@ on:
         default: both
 
 jobs:
-  determine-instances:
+  build-backend-mug:
+    if: ${{ github.event.inputs.instance == 'MUG' || github.event.inputs.instance == 'both' || github.event.inputs.instance == '' }}
     runs-on: ubuntu-latest
-    outputs:
-      instances: ${{ steps.set-instances.outputs.instances }}
-    steps:
-      - id: set-instances
-        run: |
-          if [ "${{ github.event.inputs.instance }}" = "MUG" ]; then
-            echo "instances=[\"MUG\"]" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.instance }}" = "TUG" ]; then
-            echo "instances=[\"TUG\"]" >> $GITHUB_OUTPUT
-          else
-            echo "instances=[\"MUG\", \"TUG\"]" >> $GITHUB_OUTPUT
-          fi
-
-  build-backend-instances:
-    needs: determine-instances
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        instance: ${{ fromJSON(needs.determine-instances.outputs.instances) }}
-    
     permissions:
       contents: read
       packages: write
@@ -54,10 +38,17 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch || github.ref }}
 
+    - name: Check if MUG source code exists
+      run: |
+        if [ ! -f "instances/MUG/pom.xml" ]; then
+          echo "No source code found for MUG instance"
+          exit 1
+        fi
+        echo "MUG source code found"
+
     - name: Convert repository name to lowercase
       run: |
         echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-        echo "INSTANCE_LOWER=$(echo '${{ matrix.instance }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Determine Docker tag
       run: |
@@ -79,14 +70,71 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Docker image
+    - name: Build and push MUG Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
         build-args: |
-          INSTANCE_NAME=${{ matrix.instance }}
+          INSTANCE_NAME=MUG
         tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-backend-${{ env.INSTANCE_LOWER }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-backend-mug
+        labels: |
+          org.opencontainers.image.source=${{ github.repository_owner }}/${{ github.event.repository.name }}
+
+  build-backend-tug:
+    if: ${{ github.event.inputs.instance == 'TUG' || github.event.inputs.instance == 'both' || github.event.inputs.instance == '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+
+    - name: Check if TUG source code exists
+      run: |
+        if [ ! -f "instances/TUG/pom.xml" ]; then
+          echo "No source code found for TUG instance"
+          exit 1
+        fi
+        echo "TUG source code found"
+
+    - name: Convert repository name to lowercase
+      run: |
+        echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Determine Docker tag
+      run: |
+        if [[ "${{ github.event.inputs.branch }}" != "" ]]; then
+          DOCKER_TAG="${{ github.event.inputs.branch }}"
+        elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          DOCKER_TAG="${GITHUB_REF#refs/tags/}"
+        elif [[ "${{ github.ref }}" == refs/pull/* ]]; then
+          DOCKER_TAG="pr-${{ github.event.number }}"
+        else
+          DOCKER_TAG="${GITHUB_REF#refs/heads/}"
+        fi
+        echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push TUG Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        build-args: |
+          INSTANCE_NAME=TUG
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-backend-tug
         labels: |
           org.opencontainers.image.source=${{ github.repository_owner }}/${{ github.event.repository.name }} 

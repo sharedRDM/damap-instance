@@ -2,16 +2,19 @@
 
 # Create a first stage container to build the application, this container image will be dropped once
 # the runner is built
-FROM --platform=linux/amd64 maven:3.9.5-eclipse-temurin-17-alpine AS builder
+FROM maven:3.9.5-eclipse-temurin-17-alpine AS builder
+
+# Install git for cloning repositories
+RUN apk add --no-cache git
 
 # This Dockerfile uses labels from the label-schema namespace from http://label-schema.org/rc1/
 LABEL maintainer="rdmteam@tugraz.at" \
-        org.label-schema.name="DAMAP-backend" \
+        org.label-schema.name="DAMAP-backend-instances" \
         org.label-schema.description="DAMAP is a tool that aims to facilitate the creation of data management plans (DMPs) for researchers." \
-        org.label-schema.usage="https://github.com/sharedRDM/damap-backend-mug/tree/main/doc" \
+        org.label-schema.usage="https://github.com/sharedRDM/damap-instance/tree/main/README.md" \
         org.label-schema.vendor="Technische Universität Graz" \
-        org.label-schema.url="https://github.com/sharedRDM/damap-backend-mug" \
-        org.label-schema.vcs-url="https://github.com/sharedRDM/damap-backend-mug" \
+        org.label-schema.url="https://github.com/sharedRDM/damap-instance" \
+        org.label-schema.vcs-url="https://github.com/sharedRDM/damap-instance" \
         org.label-schema.schema-version="1.0" \
         org.label-schema.docker.cmd="docker run -d -p 8080:8080 damap"
 
@@ -23,14 +26,25 @@ RUN mkdir $BUILD_HOME && mkdir -p $BUILD_HOME/.m2/repository && chown -R 1000:0 
 USER 1000
 WORKDIR $BUILD_HOME
 
-COPY instances/${INSTANCE_NAME}/src ./src
-COPY instances/${INSTANCE_NAME}/pom.xml .
+# Clone the appropriate repository based on INSTANCE_NAME
+RUN if [ "$INSTANCE_NAME" = "MUG" ]; then \
+        git clone https://github.com/sharedRDM/damap-backend.git temp-repo; \
+    elif [ "$INSTANCE_NAME" = "TUG" ]; then \
+        git clone https://github.com/tugraz-rdm/damap-backend-tugraz.git temp-repo; \
+    else \
+        echo "Unknown INSTANCE_NAME: $INSTANCE_NAME" && exit 1; \
+    fi
+
+# Copy source code and pom.xml from cloned repository
+RUN cp -r temp-repo/src ./src && \
+    cp temp-repo/pom.xml . && \
+    rm -rf temp-repo
 
 VOLUME ["/home/app/.m2/repository"]
 RUN mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE}
 
 # Create a second stage container which will only contain the runtime binaries without build dependencies
-FROM --platform=linux/amd64 rockylinux:8.5 AS runner
+FROM rockylinux:8.5 AS runner
 
 ARG JAVA_PACKAGE=java-17-openjdk-headless
 ARG RUN_JAVA_VERSION=1.3.8
