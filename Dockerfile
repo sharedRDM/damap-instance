@@ -4,41 +4,33 @@
 # the runner is built
 FROM maven:3.9.5-eclipse-temurin-17-alpine AS builder
 
-# Install git for cloning repositories
-RUN apk add --no-cache git
-
 # This Dockerfile uses labels from the label-schema namespace from http://label-schema.org/rc1/
 LABEL maintainer="rdmteam@tugraz.at" \
-        org.label-schema.name="DAMAP-backend-instances" \
+        org.label-schema.name="DAMAP-backend" \
         org.label-schema.description="DAMAP is a tool that aims to facilitate the creation of data management plans (DMPs) for researchers." \
-        org.label-schema.usage="https://github.com/sharedRDM/damap-instance/tree/main/README.md" \
-        org.label-schema.vendor="Technische Universität Graz" \
-        org.label-schema.url="https://github.com/sharedRDM/damap-instance" \
-        org.label-schema.vcs-url="https://github.com/sharedRDM/damap-instance" \
+        org.label-schema.usage="https://github.com/tugraz-rdm/damap-backend-tugraz/tree/main/README.md" \
+        org.label-schema.vendor="Graz University of Technology" \
+        org.label-schema.url="https://github.com/tugraz-rdm/damap-backend-tugraz" \
+        org.label-schema.vcs-url="https://github.com/tugraz-rdm/damap-backend-tugraz" \
         org.label-schema.schema-version="1.0" \
         org.label-schema.docker.cmd="docker run -d -p 8080:8080 damap"
 
-ARG INSTANCE_NAME
 ARG BUILD_HOME=/home/app
 ARG BUILD_PROFILE=postgres
+
+# Name of the directory
+ARG INSTANCE_NAME
 
 RUN mkdir $BUILD_HOME && mkdir -p $BUILD_HOME/.m2/repository && chown -R 1000:0 $BUILD_HOME
 USER 1000
 WORKDIR $BUILD_HOME
 
-# Clone the appropriate repository based on INSTANCE_NAME
-RUN if [ "$INSTANCE_NAME" = "MUG" ]; then \
-        git clone https://github.com/sharedRDM/damap-backend.git temp-repo; \
-    elif [ "$INSTANCE_NAME" = "TUG" ]; then \
-        git clone https://github.com/tugraz-rdm/damap-backend-tugraz.git temp-repo; \
-    else \
-        echo "Unknown INSTANCE_NAME: $INSTANCE_NAME" && exit 1; \
-    fi
+COPY src ./src
+COPY ./pom.xml .
 
-# Copy source code and pom.xml from cloned repository
-RUN cp -r temp-repo/src ./src && \
-    cp temp-repo/pom.xml . && \
-    rm -rf temp-repo
+COPY instances/${INSTANCE_NAME}/src ./src
+COPY instances/${INSTANCE_NAME}/pom.xml .
+
 
 VOLUME ["/home/app/.m2/repository"]
 RUN mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE}
@@ -81,4 +73,4 @@ EXPOSE 8080
 # for Openshift based unprivilegued Kubernetes environments, we will set the user to 1001
 USER 1001
 
-ENTRYPOINT [ "/deployments/run-java.sh" ] 
+ENTRYPOINT [ "/deployments/run-java.sh" ]
