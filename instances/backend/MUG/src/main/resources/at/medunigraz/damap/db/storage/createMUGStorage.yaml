@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: mug_storage_procedures_1
+      author: David Eckhard
+      runAlways: true
+      changes:
+        - sqlFile:
+            dbms:  '!h2, postgresql'
+            splitStatements:  false
+            stripComments:  false
+            path: at/medunigraz/damap/db/storage/procedures.sql
+    
+  - changeSet:
+      id: mug_create_storage_1
+      author: David Eckhard
+      runAlways: true
+      changes:
+        - sql:
+            dbms:  '!h2, postgresql'
+            splitStatements:  false
+            stripComments:  false
+            sql: >
+              CALL damap_upsert_storage(
+                'O:\',
+                'O:\',
+                0,
+                'The data is stored on a server of the Medical University of Graz.The storage is unencrypted, but is protected by access rights.',
+                'A daily backup is made on the backup system of the Medical University of Graz.The backup is unencrypted and can only be restored by the administrator.'
+              );
+              CALL damap_upsert_storage_translation(
+                'O:\',
+                0,
+                'eng',
+                'Network directory O [Organisation]',
+                'File services (network drives) are central data storage areas in which organization - related, project - related or personal data(documents, slides, images, etc.) can bestored and exchanged. Patient - related data may only be stored or transferred in encrypted or anonymized form. Drive O : [Organization] is set up with the involvement of the IT - Partner, the assignment of access rights is initiated by the IT - Partner or the management of the organizational unit and implemented operationally by the IT department of the Medical University of Graz.'
+              );
+        - sql:
+            dbms:  '!h2, postgresql'
+            splitStatements:  false
+            stripComments:  false
+            sql: >
+              CALL damap_upsert_storage(
+                'P:\',
+                'P:\',
+                0,
+                'The data is stored on a server of the Medical University of Graz. The storage is unencrypted, but is protected by access rights.',
+                'A daily backup is made on the backup system of the Medical University of Graz.The backup is unencrypted and can only be restored by the administrator.'
+              );
+              CALL damap_upsert_storage_translation(
+                'P:\',
+                0,
+                'eng',
+                'Network directory P [Project]',
+                'File services (network drives) are central data storage areas in which organization - related, project - related or personal data(documents, slides, images, etc.) can bestored and exchanged. Patient - related data may only be stored or transferred in encrypted or anonymized form. Drive P: [project] is for cross-organizational projects, access rights are assigned by the project management and are implemented opera onally by the IT department of the Medical University of Graz.'
+              );
+        - sql:
+            dbms:  '!h2, postgresql'
+            splitStatements:  false
+            stripComments:  false
+            sql: >
+              CALL damap_upsert_storage(
+                'U:\',
+                'U:\',
+                0,
+                'The data is stored on a server of the Medical University of Graz. The storage is unencrypted, but is protected by access rights.',
+                'A daily backup is made on the backup system of the Medical University of Graz.The backup is unencrypted and can only be restored by the administrator.'
+              );
+              CALL damap_upsert_storage_translation(
+                'U:\',
+                0,
+                'eng',
+                'Network directory U [Project]',
+                'File services (network drives) are central data storage areas in which organization - related, project - related or personal data(documents, slides, images, etc.) can bestored and exchanged. Patient - related data may only be stored or transferred in encrypted or anonymized form. Drive U: [User] is automatically available to every user and only the user himself has access to this directory.'
+              );
+        - sql:
+            dbms:  '!h2, postgresql'
+            splitStatements:  false
+            stripComments:  false
+            sql: >
+              CALL damap_upsert_storage(
+                'https://box.medunigraz.at/login',
+                'https://box.medunigraz.at/login',
+                0,
+                'The data is stored on a server of the Medical University of Graz.',
+                'The server is backed up in accordance with Med Uni Graz-Guidelines (daily and weekly backup, 3 months storage, locally separated).'
+              );
+              CALL damap_upsert_storage_translation(
+                'https://box.medunigraz.at/login',
+                0,
+                'eng',
+                'NextCloud',
+                'NextCloud is comparable to services such as Dropbox, Skydrive or Google Drive. The difference is that with NextCloud your data is stored on the servers of the Medical University of Graz. This cloud service is used to synchronize data between different devices (PC, notebook, cell phone, etc.) and to exchange data between different people. NextCloud may not be used to transfer patient-related data and is not a substitute for the central file system (network drives) of the Medical University of Graz.'
+              );
