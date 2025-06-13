@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: org/damap/base/db/changeLog-root.yaml # changelog from base damap-backend
+  - include:
+      file: at/tugraz/damap/db/addInstitutionalStorage.yaml # insert TU Graz specific storage
+  - include:
+      file: at/tugraz/damap/db/fixDmpTitles.yaml
+  - include:
+      file: at/tugraz/damap/db/addContributorRole.yaml

@@ -1,0 +1,232 @@
+databaseChangeLog:
+  - property:
+        name: cloud.id
+        value: 1
+  - property:
+        name: cloud.url
+        value: "https://cloud.tugraz.at/"
+
+  - property:
+        name: gitlab.id
+        value: 2
+  - property:
+        name: gitlab.url
+        value: "https://gitlab.tugraz.at/"
+
+  - property:
+        name: ftp.id
+        value: 3
+  - property:
+        name: ftp.url
+        value: "https://tu4u.tugraz.at/bedienstete/it-anleitungen-bedienstete/tools-zur-zusammenarbeit/tu-graz-ftp"
+
+  - logicalFilePath: db/tugraz/addInstitutionalStorage.sql
+  - changeSet:
+      id: "at/tugraz/damap/addInstitutionalStorageCloud"
+      preConditions:
+        - onFail: MARK_RAN # already added in the database
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(id) FROM internal_storage WHERE internal_storage.URL = '${cloud.url}' LIMIT 1;
+      author: David Eckhard
+      changes:
+        - insert:
+            tableName: internal_storage
+            columns:
+              - column:
+                  name: ID
+                  value: ${cloud.id}
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: URL
+                  value: "${cloud.url}"
+              - column:
+                  name: STORAGE_LOCATION
+                  value: "AUT"
+              - column:
+                  name: backup_location
+                  value: "AUT"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 1
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${cloud.id}
+              - column:
+                  name: language_code
+                  value: "eng"
+              - column:
+                  name: title
+                  value: "TU Graz Cloud"
+              - column:
+                  name: description
+                  value: "Cloud storage provided by TU Graz"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 2
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${cloud.id}
+              - column:
+                  name: language_code
+                  value: "deu"
+              - column:
+                  name: title
+                  value: "TU Graz Cloud"
+              - column:
+                  name: description
+                  value: "Cloud Speicher der TU Graz"
+
+  - changeSet:
+      id: "at/tugraz/damap/addInstitutionalStorageGitLab"
+      preConditions:
+        - onFail: MARK_RAN # already added in the database
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(id) FROM internal_storage WHERE internal_storage.URL = '${gitlab.url}' LIMIT 1;
+      author: David Eckhard
+      changes:
+        - insert:
+            tableName: internal_storage
+            columns:
+              - column:
+                  name: ID
+                  value: ${gitlab.id}
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: URL
+                  value: ${gitlab.url}
+              - column:
+                  name: STORAGE_LOCATION
+                  value: "AUT"
+              - column:
+                  name: backup_location
+                  value: "AUT"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 3
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${gitlab.id}
+              - column:
+                  name: language_code
+                  value: "eng"
+              - column:
+                  name: title
+                  value: "TU Graz GitLab"
+              - column:
+                  name: description
+                  value: "GitLab instance provided by TU Graz"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 4
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${gitlab.id}
+              - column:
+                  name: language_code
+                  value: "deu"
+              - column:
+                  name: title
+                  value: "TU Graz GitLab"
+              - column:
+                  name: description
+                  value: "GitLab Instanz der TU Graz"
+
+  - changeSet:
+      id: "at/tugraz/damap/addInstitutionalStorageFTP"
+      preConditions:
+        - onFail: MARK_RAN # already added in the database
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(id) FROM internal_storage WHERE internal_storage.URL = '${ftp.url}' LIMIT 1;
+      author: David Eckhard
+      changes:
+        - insert:
+            tableName: internal_storage
+            columns:
+              - column:
+                  name: ID
+                  value: ${ftp.id}
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: URL
+                  value: ${ftp.url}
+              - column:
+                  name: STORAGE_LOCATION
+                  value: "AUT"
+              - column:
+                  name: backup_location
+                  value: "AUT"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 5
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${ftp.id}
+              - column:
+                  name: language_code
+                  value: "eng"
+              - column:
+                  name: title
+                  value: "TU Graz FTP Server"
+              - column:
+                  name: description
+                  value: "FTP server provided by TU Graz"
+        - insert:
+            tableName: inter_storage_translation
+            columns:
+              - column:
+                  name: ID
+                  value: 6
+              - column:
+                  name: VERSION
+                  value: 0
+              - column:
+                  name: internal_storage_id
+                  value: ${ftp.id}
+              - column:
+                  name: language_code
+                  value: "deu"
+              - column:
+                  name: title
+                  value: "TU Graz FTP Server"
+              - column:
+                  name: description
+                  value: "FTP Server der TU Graz"
