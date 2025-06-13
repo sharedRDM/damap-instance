@@ -1,19 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# Create a first stage container to build the application, this container image will be dropped once
 # the runner is built
 FROM maven:3.9.5-eclipse-temurin-17-alpine AS builder
-
-# This Dockerfile uses labels from the label-schema namespace from http://label-schema.org/rc1/
-LABEL maintainer="rdmteam@tugraz.at" \
-        org.label-schema.name="DAMAP-backend" \
-        org.label-schema.description="DAMAP is a tool that aims to facilitate the creation of data management plans (DMPs) for researchers." \
-        org.label-schema.usage="https://github.com/tugraz-rdm/damap-backend-tugraz/tree/main/README.md" \
-        org.label-schema.vendor="Graz University of Technology" \
-        org.label-schema.url="https://github.com/tugraz-rdm/damap-backend-tugraz" \
-        org.label-schema.vcs-url="https://github.com/tugraz-rdm/damap-backend-tugraz" \
-        org.label-schema.schema-version="1.0" \
-        org.label-schema.docker.cmd="docker run -d -p 8080:8080 damap"
 
 ARG BUILD_HOME=/home/app
 ARG BUILD_PROFILE=postgres
@@ -25,12 +13,8 @@ RUN mkdir $BUILD_HOME && mkdir -p $BUILD_HOME/.m2/repository && chown -R 1000:0 
 USER 1000
 WORKDIR $BUILD_HOME
 
-COPY src ./src
-COPY ./pom.xml .
-
 COPY instances/${INSTANCE_NAME}/src ./src
 COPY instances/${INSTANCE_NAME}/pom.xml .
-
 
 VOLUME ["/home/app/.m2/repository"]
 RUN mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE}

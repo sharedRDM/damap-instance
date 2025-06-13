@@ -8,30 +8,30 @@ on:
   push:
     branches:
       - main
-      - 1-proposal-structure  # or merge_request
+      - 1-proposal-structure
     tags:
       - 'v*'
 
-  # workflow_dispatch:
-  #   inputs:
-  #     branch:
-  #       description: 'Branch to build from'
-  #       required: false
-  #       default: 'main'
-  #     instance:
-  #       type: choice
-  #       description: 'Choose the backend instance'
-  #       options:
-  #       - both
-  #       - MUG
-  #       - TUG
-  #       required: false
-  #       default: both
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        required: false
+        default: 'main'
+      instance:
+        type: choice
+        description: 'Choose the backend instance'
+        options:
+          - both
+          - MUG
+          - TUG
+        required: false
+        default: both
 
 jobs:
-
   build-backend-mug:
     runs-on: ubuntu-22.04
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'MUG' }}
     permissions:
       contents: read
       packages: write
@@ -39,11 +39,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Checkout MUG backend source
+        uses: actions/checkout@v3
+        with:
+          repository: sharedRDM/damap-backend-mug
+          path: temp-mug
+
+      - name: Copy MUG source to instance directory
+        run: |
+          cp -r temp-mug/src instances/MUG/
+          cp temp-mug/pom.xml instances/MUG/
+          rm -rf temp-mug
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.12'
+
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
@@ -70,18 +85,20 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Mug Docker image
+      - name: Build and push MUG Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           push: true
+          build-args: |
+            INSTANCE_NAME=MUG
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-mug
           labels: ${{ steps.meta.outputs.labels }}
 
-
   build-backend-tug:
     runs-on: ubuntu-22.04
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'TUG' }}
     permissions:
       contents: read
       packages: write
@@ -89,11 +106,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Checkout TUG backend source
+        uses: actions/checkout@v3
+        with:
+          repository: tugraz-rdm/damap-backend-tugraz
+          path: temp-tug
+
+      - name: Copy TUG source to instance directory
+        run: |
+          cp -r temp-tug/src instances/TUG/
+          cp temp-tug/pom.xml instances/TUG/
+          rm -rf temp-tug
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.12'
+
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
@@ -120,11 +152,13 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Mug Docker image
+      - name: Build and push TUG Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           push: true
+          build-args: |
+            INSTANCE_NAME=TUG
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-tug
           labels: ${{ steps.meta.outputs.labels }}
