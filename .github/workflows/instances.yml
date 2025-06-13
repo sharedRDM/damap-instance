@@ -1,0 +1,130 @@
+name: DAMAP Backend Instances
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        required: false
+        default: 'main'
+      instance:
+        type: choice
+        description: 'Choose the backend instance'
+        options:
+          - both
+          - MUG
+          - TUG
+        required: false
+        default: both
+
+jobs:
+  build-backend-mug:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'MUG' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Convert repository name to lowercase
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Determine Docker tag (from tag or branch)
+        id: get_tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            TAG_NAME="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "DOCKER_TAG=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push MUG Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          build-args: |
+            INSTANCE_NAME=MUG
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-mug
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-backend-tug:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'TUG' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Convert repository name to lowercase
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Determine Docker tag (from tag or branch)
+        id: get_tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            TAG_NAME="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "DOCKER_TAG=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push TUG Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          build-args: |
+            INSTANCE_NAME=TUG
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-tug
+          labels: ${{ steps.meta.outputs.labels }}
+

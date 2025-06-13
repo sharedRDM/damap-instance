@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: org/damap/base/db/changeLog-root.yaml # changelog from base damap-backend
+  - include:
+      file: at/medunigraz/damap/db/storage/createMUGStorage.yaml # insert TU Graz specific storage
