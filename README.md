@@ -6,21 +6,27 @@ This repository manages DAMAP backend deployments for different institutions usi
 
 - **TUG** - Graz University of Technology
 - **MUG** - Medical University of Graz
+- **JKU** - Johannes Kepler University Linz
 
 ## Structure
 
 ```
 instances/
 ├── TUG/
-│   ├── src/                    # TUG-specific source code  
+│   ├── src/                    
 │   │   ├── main/java/at/tugraz/damap/...
 │   │   └── main/resources/...
-│   └── pom.xml                 # TUG Maven configuration
+│   └── pom.xml                 
 ├── MUG/
-│   ├── src/                    # MUG-specific source code
+│   ├── src/                    
 │   │   ├── main/java/at/medunigraz/damap/...
 │   │   └── main/resources/...
-│   └── pom.xml                 # MUG Maven configuration
+│   └── pom.xml                
+├── JKU/
+│   ├── src/                   
+│   │   ├── main/java/at/jku/damap/...
+│   │   └── main/resources/...
+│   └── pom.xml                 
 ```
 
 ## Usage
@@ -34,6 +40,9 @@ docker build --build-arg INSTANCE_NAME=TUG -t damap-backend-tug .
 
 # Build MUG backend
 docker build --build-arg INSTANCE_NAME=MUG -t damap-backend-mug .
+
+# Build JKU backend
+docker build --build-arg INSTANCE_NAME=JKU -t damap-backend-jku .
 ```
 
 **On Mac (ARM64/M1/M2):**
@@ -43,5 +52,8 @@ docker build --platform linux/amd64 --build-arg INSTANCE_NAME=TUG -t damap-backe
 
 # Build MUG backend
 docker build --platform linux/amd64 --build-arg INSTANCE_NAME=MUG -t damap-backend-mug .
+
+# Build JKU backend
+docker build --platform linux/amd64 --build-arg INSTANCE_NAME=JKU -t damap-backend-jku .
 ```
 
