@@ -7,7 +7,7 @@
 
   <groupId>at.tugraz</groupId>
   <artifactId>damap</artifactId>
-  <version>4.3.0</version>
+  <version>4.5.2</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A tool for machine actionable DMPs.</description>
