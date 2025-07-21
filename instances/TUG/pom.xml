@@ -7,7 +7,7 @@
 
   <groupId>at.tugraz</groupId>
   <artifactId>damap</artifactId>
-  <version>4.5.2</version>
+  <version>4.6.1</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A tool for machine actionable DMPs.</description>
@@ -31,8 +31,24 @@
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <quarkus.platform.version>3.11.1</quarkus.platform.version>
-    <spotless.version>2.44.0.BETA1</spotless.version>  
-    </properties>
+    <spotless.version>2.44.0.BETA1</spotless.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>CSD Github</name>
+      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
+    </repository>
+  </distributionManagement>
 
   <dependencyManagement>
     <dependencies>
@@ -51,7 +67,7 @@
     <dependency>
       <groupId>org.damap</groupId>
       <artifactId>base</artifactId>
-      <version>4.5.2</version>
+      <version>0.0.0-SNAPSHOT</version>
     </dependency>
     <!-- Test -->
     <dependency>
@@ -197,6 +213,20 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.7.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs-verify</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.platform.version}</version>
@@ -227,6 +257,62 @@
             <maven.home>${maven.home}</maven.home>
           </systemProperties>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>xjc</id>
+            <phase>none</phase>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <sources>
+            <source>src/main/resources/org/damap/base/spec/fits/fits_output.xsd</source>
+            <source>src/main/resources/org/damap/base/spec/re3data/re3dataV3-0.xsd</source>
+            <source>src/main/resources/org/damap/base/spec/re3data/re3dataV2-2.xsd</source>
+            <source>src/main/resources/org/damap/base/spec/re3data/re3data_index_V1-0.xsd</source>
+            <source>src/main/resources/org/damap/base/spec/oaf/oaf-response-1.0.xsd</source>
+          </sources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>3.1.2</version>
+        <executions>
+          <execution>
+            <id>default-deploy</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jsonschema2pojo</groupId>
+        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <configuration>
+          <skip>true</skip>
+          <annotationStyle>jackson</annotationStyle>
+          <sourceDirectory>${basedir}/src/main/resources/org/damap/base/schema</sourceDirectory>
+          <targetPackage>org.damap.base.rest.madmp.dto</targetPackage>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <!--These
@@ -268,6 +354,22 @@
         <artifactId>liquibase-maven-plugin</artifactId>
         <version>4.28.0</version>
       </plugin>
+      <!-- Index resources for this package. When setting this package as a dependency, it will automatically
+      register all beans and resources and the endpoints are available.
+      -->
+      <plugin>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>3.1.8</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <!-- jandex-maven-plugin: generates indexes of exported classes of the base-->
   </build>
@@ -308,6 +410,66 @@
         <quarkus.native.enabled>true</quarkus.native.enabled>
         <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
       </properties>
+    </profile>
+    <profile>
+      <id>deploy-mvn-repository</id>
+      <build>
+        <plugins>
+          <!-- Generate <package>-sources.jar for deployment -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Generate <package>-javadoc.jar for deployment -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.7.0</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.8.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <!-- sonar: usecase: if you call maven with this profile, sonarsource we be used: 
              deploy-mvn-repository: is used only for dep of the base -->
