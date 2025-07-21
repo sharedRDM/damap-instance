@@ -2,6 +2,10 @@
 
 This repository manages DAMAP backend deployments for different institutions using a shared Docker build system.
 
+## Documentation
+
+For detailed guides and migration instructions, see [**docs/**](docs/) directory:
+
 ## Current Institutions
 
 - **TUG** - Graz University of Technology
