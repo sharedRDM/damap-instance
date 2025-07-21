@@ -1,0 +1,8 @@
+at.tugraz.damap.conversion
+at.tugraz.damap.rest.dmp.mapper
+at.tugraz.damap.rest.dmp.domain
+at.tugraz.damap.rest.projects
+at.tugraz.damap.rest.persons
+at.tugraz.blueprint.rest.auth
+at.tugraz.blueprint.rest.models
+at.tugraz.blueprint.rest.services

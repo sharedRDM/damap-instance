@@ -1,0 +1,17 @@
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/auth/BasicTokenAPIClientHeadersFactory.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/auth/BearerTokenClientHeadersFactory.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/auth/CredentialsResponseBody.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/auth/CredentialsRestService.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/auth/CredentialsService.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/models/SearchResult.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/services/PersonServiceBase.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/blueprint/rest/services/ProjectServiceBase.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/conversion/TUGrazTemplateFileBrokerServiceImpl.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/dmp/domain/TUGrazPerson.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/dmp/domain/TUGrazProject.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/dmp/mapper/TUGrazPersonDOMapper.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/dmp/mapper/TUGrazProjectDOMapper.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/persons/TUGrazPersonRestService.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/persons/TUGrazPersonServiceImpl.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/projects/TUGrazProjectRestService.java
+/Users/lpandath/Documents/work/rdm/damap/damap-instance/instances/TUG/src/main/java/at/tugraz/damap/rest/projects/TUGrazProjectServiceImpl.java
