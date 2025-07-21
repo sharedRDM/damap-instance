@@ -31,7 +31,7 @@ damap:
       class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
     - display-text: "ORCID"
       query-value: "ORCID"
-      class-name: "org.damap.base.rest.persons.orcid.ORCIDPersonServiceImpl"
+      class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl" 
   tugraz:
     api:
       auth:
