@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- Inherit from parent POM -->
+  <parent>
+    <groupId>org.damap</groupId>
+    <artifactId>damap-instances-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <!-- TUG-specific identity -->
   <groupId>at.tugraz</groupId>
   <artifactId>damap</artifactId>
   <version>4.6.1</version>
@@ -21,55 +29,23 @@
   </licenses>
 
   <properties>
+    <!-- TUG uses SNAPSHOT to get latest updates -->
+    <damap.base.version>${damap.base.version.tug}</damap.base.version>
+    
+    <!-- TUG-specific properties -->
     <surefire-plugin.version>3.2.3</surefire-plugin.version>
-    <maven.compiler.target>17</maven.compiler.target>
-    <maven.compiler.source>17</maven.compiler.source>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.parameters>true</maven.compiler.parameters>
     <compiler-plugin.version>3.12.1</compiler-plugin.version>
-    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>3.11.1</quarkus.platform.version>
     <spotless.version>2.44.0.BETA1</spotless.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
-    </repository>
-  </repositories>
-
-  <distributionManagement>
-    <repository>
-      <id>github</id>
-      <name>CSD Github</name>
-      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
-    </repository>
-  </distributionManagement>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-        <version>${quarkus.platform.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
-    <!-- Base image -->
+    <!-- Base image - version managed by parent -->
     <dependency>
       <groupId>org.damap</groupId>
       <artifactId>base</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
     </dependency>
-    <!-- Test -->
+    
+    <!-- Test dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jacoco</artifactId>
@@ -110,11 +86,12 @@
       <artifactId>quarkus-jdbc-h2</artifactId>
       <scope>test</scope>
     </dependency>
+    
+    <!-- Rest dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-validator</artifactId>
     </dependency>
-    <!-- Rest -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest</artifactId>
@@ -135,6 +112,7 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client-jackson</artifactId>
     </dependency>
+    
     <!-- Authentication -->
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -144,6 +122,7 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-jwt</artifactId>
     </dependency>
+    
     <!-- Database -->
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -169,11 +148,13 @@
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
     </dependency>
+    
     <!-- Health -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
+    
     <!-- Utility -->
     <dependency>
       <groupId>org.reflections</groupId>
@@ -227,9 +208,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>${quarkus.platform.group-id}</groupId>
+        <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus.platform.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -241,7 +221,7 @@
           </execution>
         </executions>
       </plugin>
-     <plugin>
+      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
         <configuration>
@@ -259,85 +239,20 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>3.2.0</version>
-        <executions>
-          <execution>
-            <id>xjc</id>
-            <phase>none</phase>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skip>true</skip>
-          <sources>
-            <source>src/main/resources/org/damap/base/spec/fits/fits_output.xsd</source>
-            <source>src/main/resources/org/damap/base/spec/re3data/re3dataV3-0.xsd</source>
-            <source>src/main/resources/org/damap/base/spec/re3data/re3dataV2-2.xsd</source>
-            <source>src/main/resources/org/damap/base/spec/re3data/re3data_index_V1-0.xsd</source>
-            <source>src/main/resources/org/damap/base/spec/oaf/oaf-response-1.0.xsd</source>
-          </sources>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>3.1.2</version>
-        <executions>
-          <execution>
-            <id>default-deploy</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>deploy</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.jsonschema2pojo</groupId>
-        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-        <version>1.1.1</version>
-        <configuration>
-          <skip>true</skip>
-          <annotationStyle>jackson</annotationStyle>
-          <sourceDirectory>${basedir}/src/main/resources/org/damap/base/schema</sourceDirectory>
-          <targetPackage>org.damap.base.rest.madmp.dto</targetPackage>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>none</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <!--These
-        are plugins which we do not nessesary need it: 
-            maven-compiler-plugin: 
-           org.codehaus.mojo: generates java classes which we use from base (xsd)
-          maven-deploy-plugin: we do not call deploy in any pipelin 
-        jsonschema2pojo-maven-plugin: generates java classes which we use from base (json) -->
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
         <version>${spotless.version}</version>
         <configuration>
           <java>
-            <!-- These are the defaults, you can override if you want -->
             <includes>
               <include>src/main/java/**/*.java</include>
               <include>src/test/java/**/*.java</include>
             </includes>
-            <!-- Cleanthat will refactor your code, but it may break your style: apply it before
-            your formatter -->
             <cleanthat />
             <googleJavaFormat></googleJavaFormat>
-            <importOrder /> <!-- standard import order -->
-            <removeUnusedImports /> <!-- self-explanatory -->
-            <formatAnnotations />  <!-- fixes formatting of type annotations -->
+            <importOrder />
+            <removeUnusedImports />
+            <formatAnnotations />
           </java>
         </configuration>
         <executions>
@@ -354,9 +269,6 @@
         <artifactId>liquibase-maven-plugin</artifactId>
         <version>4.28.0</version>
       </plugin>
-      <!-- Index resources for this package. When setting this package as a dependency, it will automatically
-      register all beans and resources and the endpoints are available.
-      -->
       <plugin>
         <groupId>io.smallrye</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
@@ -371,8 +283,8 @@
         </executions>
       </plugin>
     </plugins>
-    <!-- jandex-maven-plugin: generates indexes of exported classes of the base-->
   </build>
+
   <profiles>
     <profile>
       <id>native</id>
@@ -411,67 +323,5 @@
         <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
       </properties>
     </profile>
-    <profile>
-      <id>deploy-mvn-repository</id>
-      <build>
-        <plugins>
-          <!-- Generate <package>-sources.jar for deployment -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <version>3.3.1</version>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- Generate <package>-javadoc.jar for deployment -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.7.0</version>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.2.4</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.sonatype.central</groupId>
-            <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.8.0</version>
-            <extensions>true</extensions>
-            <configuration>
-              <publishingServerId>central</publishingServerId>
-              <autoPublish>true</autoPublish>
-              <waitUntil>published</waitUntil>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- sonar: usecase: if you call maven with this profile, sonarsource we be used: 
-             deploy-mvn-repository: is used only for dep of the base -->
   </profiles>
 </project>

@@ -24,13 +24,22 @@ on:
           - TUG
           - MUG
           - JKU
+          - all
         required: false
-        default: 'TUG'
+        default: 'all'
+      base_version:
+        description: 'DAMAP base version to use'
+        required: false
+        default: ''
+      release_tag:
+        description: 'Release tag for all images'
+        required: false
+        default: ''
 
 jobs:
   build-backend-mug:
     runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'MUG' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'MUG' }}
     permissions:
       contents: read
       packages: write
@@ -41,18 +50,45 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch || github.ref }}
 
+      - name: Set up Java and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy Maven settings for Docker
+        run: |
+          mkdir -p .m2
+          cp ~/.m2/settings.xml .m2/settings.xml
+
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Determine Docker tag (from tag or branch)
         id: get_tag
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
+            TAG_NAME="${{ github.event.inputs.release_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           else
             TAG_NAME="${GITHUB_REF#refs/heads/}"
           fi
           echo "DOCKER_TAG=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Set up build arguments
+        run: |
+          BUILD_ARGS="INSTANCE_NAME=MUG"
+          if [[ "${{ github.event.inputs.base_version }}" != "" ]]; then
+            BUILD_ARGS="$BUILD_ARGS\nDAMAP_BASE_VERSION=${{ github.event.inputs.base_version }}"
+          fi
+          echo "BUILD_ARGS<<EOF" >> $GITHUB_ENV
+          echo -e "$BUILD_ARGS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -72,15 +108,14 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            INSTANCE_NAME=MUG
+          build-args: ${{ env.BUILD_ARGS }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-mug
           labels: ${{ steps.meta.outputs.labels }}
 
   build-backend-tug:
     runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'TUG' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'TUG' }}
     permissions:
       contents: read
       packages: write
@@ -91,18 +126,45 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch || github.ref }}
 
+      - name: Set up Java and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy Maven settings for Docker
+        run: |
+          mkdir -p .m2
+          cp ~/.m2/settings.xml .m2/settings.xml
+
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Determine Docker tag (from tag or branch)
         id: get_tag
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
+            TAG_NAME="${{ github.event.inputs.release_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           else
             TAG_NAME="${GITHUB_REF#refs/heads/}"
           fi
           echo "DOCKER_TAG=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Set up build arguments
+        run: |
+          BUILD_ARGS="INSTANCE_NAME=TUG"
+          if [[ "${{ github.event.inputs.base_version }}" != "" ]]; then
+            BUILD_ARGS="$BUILD_ARGS\nDAMAP_BASE_VERSION=${{ github.event.inputs.base_version }}"
+          fi
+          echo "BUILD_ARGS<<EOF" >> $GITHUB_ENV
+          echo -e "$BUILD_ARGS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -122,15 +184,14 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            INSTANCE_NAME=TUG
+          build-args: ${{ env.BUILD_ARGS }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-tug
           labels: ${{ steps.meta.outputs.labels }}
 
   build-backend-jku:
     runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'both' || github.event.inputs.instance == 'JKU' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'JKU' }}
     permissions:
       contents: read
       packages: write
@@ -141,18 +202,45 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch || github.ref }}
 
+      - name: Set up Java and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy Maven settings for Docker
+        run: |
+          mkdir -p .m2
+          cp ~/.m2/settings.xml .m2/settings.xml
+
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Determine Docker tag (from tag or branch)
         id: get_tag
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
+            TAG_NAME="${{ github.event.inputs.release_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           else
             TAG_NAME="${GITHUB_REF#refs/heads/}"
           fi
           echo "DOCKER_TAG=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Set up build arguments
+        run: |
+          BUILD_ARGS="INSTANCE_NAME=JKU"
+          if [[ "${{ github.event.inputs.base_version }}" != "" ]]; then
+            BUILD_ARGS="$BUILD_ARGS\nDAMAP_BASE_VERSION=${{ github.event.inputs.base_version }}"
+          fi
+          echo "BUILD_ARGS<<EOF" >> $GITHUB_ENV
+          echo -e "$BUILD_ARGS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -172,8 +260,7 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            INSTANCE_NAME=JKU
+          build-args: ${{ env.BUILD_ARGS }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}-jku
           labels: ${{ steps.meta.outputs.labels }}
