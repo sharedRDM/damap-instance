@@ -11,6 +11,9 @@ ARG BUILD_PROFILE=postgres
 # instance configuration: JKU, MUG, TUG
 ARG INSTANCE_NAME
 
+# Optional: override DAMAP base version
+ARG DAMAP_BASE_VERSION
+
 # build directories with proper permissions for non-root user
 RUN mkdir $BUILD_HOME && \
     mkdir -p $BUILD_HOME/.m2/repository && \
@@ -24,11 +27,18 @@ WORKDIR $BUILD_HOME
 COPY instances/${INSTANCE_NAME}/src ./src
 COPY instances/${INSTANCE_NAME}/pom.xml .
 
+# Copy Maven settings.xml for GitHub Packages authentication
+COPY .m2/settings.xml $BUILD_HOME/.m2/settings.xml
+
 # Maven repository volume for caching dependencies
 VOLUME ["/home/app/.m2/repository"]
 
 # build the application
-RUN mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE}
+RUN if [ -n "$DAMAP_BASE_VERSION" ]; then \
+      mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE} -Ddamap.base.version=$DAMAP_BASE_VERSION; \
+    else \
+      mvn -Duser.home=$BUILD_HOME -B package -DskipTests -Dquarkus.profile=${BUILD_PROFILE}; \
+    fi
 
 #==============================================================================
 # STAGE 2: RUNTIME STAGE
