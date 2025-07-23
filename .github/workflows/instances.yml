@@ -54,6 +54,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
+          distribution: 'temurin'
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
@@ -130,6 +131,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
+          distribution: 'temurin'
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
@@ -206,6 +208,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
+          distribution: 'temurin'
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
