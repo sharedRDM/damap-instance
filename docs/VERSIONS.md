@@ -11,12 +11,9 @@ We use a **Parent POM approach** combined with **CI/CD flexibility** to manage `
 ### Parent POM (`pom.xml`)
 - **Central version management** for `damap-base` dependency
 - **Instance-specific defaults**:
-  - **TUG**: `0.0.0-SNAPSHOT` (follows upstream development)
+  - **TUG**: `4.6.1` (latest stable release)
   - **MUG**: `4.5.2` (stable version)
   - **JKU**: `4.4.0` (stable version)
-- **Profiles** for different scenarios:
-  - `use-latest-release`: Uses stable released version (4.6.1)
-  - `production`: Production-ready version
 
 ### Instance POMs (TUG, MUG, JKU)
 - **Inherit** from parent POM
@@ -30,16 +27,10 @@ We use a **Parent POM approach** combined with **CI/CD flexibility** to manage `
 
 ## Usage scenarios
 
-### Default Behavior (Instance-specific)
+### Standard Build (Instance-specific versions)
 ```bash
-# TUG uses SNAPSHOT, MUG uses 4.5.2, JKU uses 4.4.0
+# TUG uses 4.6.1, MUG uses 4.5.2, JKU uses 4.4.0
 mvn clean package
-```
-
-### Use Latest Release
-```bash
-# Uses stable release version
-mvn clean package -Puse-latest-release
 ```
 
 ### Override Version in CI/CD
@@ -78,7 +69,7 @@ mvn clean package -Ddamap.base.version=4.7.0
 
 #### Development Build
 ```yaml
-# Uses SNAPSHOT version from parent POM
+# Uses stable versions from parent POM
 - Trigger: Push to main
 - Result: Images tagged with "main"
 ```
