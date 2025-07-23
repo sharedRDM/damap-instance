@@ -61,3 +61,4 @@ docker build --platform linux/amd64 --build-arg INSTANCE_NAME=MUG -t damap-backe
 docker build --platform linux/amd64 --build-arg INSTANCE_NAME=JKU -t damap-backend-jku .
 ```
 
+# Test build - Wed Jul 23 16:01:47 CEST 2025
