@@ -1,118 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.damap</groupId>
-  <artifactId>damap-instances-parent</artifactId>
-  <version>1.0.0</version>
-  <packaging>pom</packaging>
+    <groupId>org.damap</groupId>
+    <artifactId>damap-instances-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
 
-  <name>DAMAP Instances Parent</name>
-  <description>Parent POM for all DAMAP instance projects (TUG, MUG, JKU, etc.)</description>
+    <name>DAMAP Instances Parent</name>
+    <description>Parent POM for all DAMAP instance projects (TUG, MUG, JKU, etc.)</description>
 
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
-    <!-- Default base version - can be overridden in child POMs or via -D property -->
-    <damap.base.version>0.0.0-SNAPSHOT</damap.base.version>
-    
-    <!-- Instance-specific stable versions -->
-    <damap.base.version.tug>0.0.0-SNAPSHOT</damap.base.version.tug>
-    <damap.base.version.mug>4.5.2</damap.base.version.mug>
-    <damap.base.version.jku>4.4.0</damap.base.version.jku>
-    
-    <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>3.11.1</quarkus.platform.version>
-    <maven.compiler.parameters>true</maven.compiler.parameters>
-  </properties>
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-  <repositories>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
-    </repository>
-  </repositories>
+        <!-- Instance-specific DAMAP base versions -->
+        <damap.base.version.tug>4.6.1</damap.base.version.tug>
+        <damap.base.version.mug>4.5.2</damap.base.version.mug>
+        <damap.base.version.jku>4.4.0</damap.base.version.jku>
+        
+        <!-- Quarkus platform version -->
+        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.version>3.11.1</quarkus.platform.version>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+    </properties>
 
-  <distributionManagement>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/damap-org/damap-backend</url>
-    </repository>
-  </distributionManagement>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Quarkus BOM -->
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- DAMAP Base dependency management -->
+            <dependency>
+                <groupId>org.damap</groupId>
+                <artifactId>base</artifactId>
+                <version>${damap.base.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-  <dependencyManagement>
-    <dependencies>
-      <!-- Quarkus BOM -->
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-bom</artifactId>
-        <version>${quarkus.platform.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      
-      <!-- DAMAP Base - central version management -->
-      <dependency>
-        <groupId>org.damap</groupId>
-        <artifactId>base</artifactId>
-        <version>${damap.base.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-maven-plugin</artifactId>
+                    <version>${quarkus.platform.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.12.1</version>
+                    <configuration>
+                        <parameters>${maven.compiler.parameters}</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>io.quarkus</groupId>
-          <artifactId>quarkus-maven-plugin</artifactId>
-          <version>${quarkus.platform.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.12.1</version>
-          <configuration>
-            <parameters>${maven.compiler.parameters}</parameters>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.2.3</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-
-  <modules>
-    <module>instances/TUG</module>
-    <module>instances/MUG</module>
-    <module>instances/JKU</module>
-  </modules>
-
-  <profiles>
-    <!-- Profile to use latest released version instead of SNAPSHOT -->
-    <profile>
-      <id>use-latest-release</id>
-      <properties>
-        <damap.base.version>4.6.1</damap.base.version>
-      </properties>
-    </profile>
-
-    <!-- Profile for production builds -->
-    <profile>
-      <id>production</id>
-      <properties>
-        <damap.base.version>4.6.1</damap.base.version>
-      </properties>
-    </profile>
-  </profiles>
 </project> 
