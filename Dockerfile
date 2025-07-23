@@ -23,6 +23,9 @@ RUN mkdir $BUILD_HOME && \
 USER 1000
 WORKDIR $BUILD_HOME
 
+# Copy parent POM first
+COPY pom.xml /pom.xml
+
 # copies from instances/${INSTANCE_NAME}/ directory
 COPY instances/${INSTANCE_NAME}/src ./src
 COPY instances/${INSTANCE_NAME}/pom.xml .
