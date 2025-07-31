@@ -30,7 +30,7 @@ damap:
       class-name: 'at.medunigraz.damap.rest.persons.MUGPersonServiceImpl'
     - display-text: 'ORCID'
       query-value: 'ORCID'
-      class-name: 'org.damap.base.rest.persons.orcid.ORCIDPersonServiceImpl'
+      class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
   
   mug:
     api:
