@@ -17,8 +17,8 @@ import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import java.util.List;
+import org.damap.base.integration.orcid.ORCIDPersonServiceImpl;
 import org.damap.base.rest.PersonResource;
-import org.damap.base.rest.persons.orcid.ORCIDPersonServiceImpl;
 import org.damap.base.security.SecurityService;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +66,6 @@ class PersonResourceTest {
 
     verify(mockPersonRestService, times(1))
         .search(anyString(), anyInt(), anyInt(), nullable(List.class));
-    verify(orcidPersonServiceImpl, times(0)).search(any());
+    verify(orcidPersonServiceImpl, times(0)).search(any(org.damap.base.rest.base.Search.class));
   }
 }

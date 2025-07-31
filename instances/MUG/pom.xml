@@ -14,7 +14,7 @@
 
   <groupId>at.medunigraz</groupId>
   <artifactId>damap-be</artifactId>
-  <version>4.5.2</version>
+  <version>4.6.1</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A tool for machine actionable DMPs.</description>
