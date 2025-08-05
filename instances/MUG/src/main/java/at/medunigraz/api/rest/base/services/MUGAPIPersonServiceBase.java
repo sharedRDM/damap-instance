@@ -28,7 +28,15 @@ public interface MUGAPIPersonServiceBase {
       @QueryParam("expand") List<String> expand);
 
   @GET
-  @Path("/{id}")
+  @Path("")
   @Consumes(value = "application/json")
-  MUGPerson read(@PathParam("id") String id, @QueryParam("expand") List<String> expand);
+  default MUGPerson read(@QueryParam("id") String id, @QueryParam("expand") List<String> expand) {
+    MUGSearchResult<MUGPerson> result = search(null, 0, 100, expand);
+    for (MUGPerson person : result.getResults()) {
+      if (person.getId().toString().equals(id)) {
+        return person;
+      }
+    }
+    throw new jakarta.ws.rs.NotFoundException("Person not found: " + id);
+  }
 }
