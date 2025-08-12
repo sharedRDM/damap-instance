@@ -31,7 +31,7 @@ damap:
       class-name: 'org.damap.base.rest.persons.MockUniversityPersonServiceImpl'
     - display-text: 'ORCID'
       query-value: 'ORCID'
-      class-name: 'org.damap.base.rest.persons.orcid.ORCIDPersonServiceImpl'
+      class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
 
 invenio:
   disabled: true
