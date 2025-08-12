@@ -14,7 +14,7 @@
 
   <groupId>at.jku</groupId>
   <artifactId>damap</artifactId>
-  <version>0.2.0</version>
+  <version>4.6.1</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A tool for machine actionable DMPs.</description>
