@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
+## [4.7.0] - 2026-01-12
+
+### Added
+- Documented optional Elsevier Pure configuration hints for TUG instance (commented in `instances/TUG/src/main/resources/application.yaml`).
+
+### Changed
+- Updated TUG base dependency to 4.7.0 and module version to 4.7.0.
+- Upgraded Apache POI / POI-OOXML to 5.4.0 for TUG.
+- Datasource env var naming - revert note in TUG config comments.
+
+### Notes
+- Keycloak image provider switch and Quarkus reaugmentation are handled in base/Docker; no TUG config changes required.
+- Resource wording changes are inherited from base; no TUG overrides needed.
+
 ## [4.6.1] - 2025-07-21
 
 ### Changed
