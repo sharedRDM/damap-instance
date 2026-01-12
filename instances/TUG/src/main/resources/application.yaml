@@ -13,6 +13,9 @@ damap:
     scope: "openid profile email offline_access microprofile-jwt roles personID" # your-backend-authentication-scope, including your variable for your user IDs
     user: "personID" # the variable name for your user IDs
   datasource:
+    # Default local/compose values. If you deploy via docker-compose, stick to the reverted env var names from base:
+    # DAMAP_DATASOURCE_URL, DAMAP_DATASOURCE_USERNAME, DAMAP_DATASOURCE_PASSWORD,
+    # DAMAP_DATASOURCE_DB_KIND, DAMAP_DATASOURCE_DRIVER, DAMAP_DATASOURCE_DIALECT.
     url: jdbc:postgresql://damap-db:5432/damap # jdbc:your-datasource-language:your-datasource.address
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
@@ -25,6 +28,17 @@ damap:
   fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
+  # Optional: Elsevier Pure integration (disabled by default). Uncomment and configure if TUG starts using Pure.
+  # projects-service: elsevier-pure
+  # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
+  # elsevier-pure-contributor-role-classifications:
+  #   /dk/atira/pure/member: PROJECT_MEMBER
+  # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
+  # elsevier-pure-backend: http
+  # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
+  # elsevier-pure-api-key: "your API key here"
+  # elsevier-pure-projects-file: "file:///path/to/projects.json"
+  # elsevier-pure-persons-file: "file:///path/to/persons.json"
   person-services:
     - display-text: "University"
       query-value: "UNIVERSITY"
@@ -32,6 +46,9 @@ damap:
     - display-text: "ORCID"
       query-value: "ORCID"
       class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl" 
+    # - display-text: "Pure"
+    #   query-value: "PURE"
+    #   class-name: "org.damap.base.integration.pure.PurePersonService"
   tugraz:
     api:
       auth:
