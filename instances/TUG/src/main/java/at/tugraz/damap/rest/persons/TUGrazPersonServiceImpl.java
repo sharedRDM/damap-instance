@@ -6,14 +6,13 @@ import at.tugraz.damap.rest.dmp.domain.TUGrazPerson;
 import at.tugraz.damap.rest.dmp.mapper.TUGrazPersonDOMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
+import org.damap.base.integration.PersonService;
 import org.damap.base.rest.base.ResultList;
 import org.damap.base.rest.base.Search;
 import org.damap.base.rest.dmp.domain.ContributorDO;
-import org.damap.base.rest.persons.PersonService;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @JBossLog
@@ -24,8 +23,12 @@ public class TUGrazPersonServiceImpl implements PersonService {
 
   @Inject CredentialsService credentialsService;
 
+  public TUGrazPersonServiceImpl() {
+    log.info("TUGrazPersonServiceImpl instantiated - this confirms CDI discovery");
+  }
+
   @Override
-  public ContributorDO read(String id, MultivaluedMap<String, String> queryParams) {
+  public ContributorDO read(String id) {
     TUGrazPerson contributor;
     // We first try to get local attributes. If a field does not exist or we do
     // not have permission to access it, this will throw. So we try again without
@@ -40,8 +43,9 @@ public class TUGrazPersonServiceImpl implements PersonService {
   }
 
   @Override
-  public ResultList<ContributorDO> search(MultivaluedMap<String, String> queryParams) {
-    Search s = Search.fromMap(queryParams);
+  public ResultList<ContributorDO> search(Search s) {
+    log.info(
+        "TUGrazPersonServiceImpl.search called with query: " + (s != null ? s.getQuery() : "null"));
     SearchResult<TUGrazPerson> tuGrazPeopleSearch = new SearchResult<>();
 
     // We first try to get local attributes. If a field does not exist or we do

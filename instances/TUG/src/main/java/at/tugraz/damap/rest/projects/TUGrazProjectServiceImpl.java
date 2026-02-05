@@ -1,7 +1,6 @@
 package at.tugraz.damap.rest.projects;
 
 import at.tugraz.damap.rest.dmp.mapper.TUGrazProjectDOMapper;
-import at.tugraz.damap.rest.persons.TUGrazPersonRestService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -19,8 +18,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @JBossLog
 @ApplicationScoped
 public class TUGrazProjectServiceImpl implements ProjectService {
-
-  @Inject @RestClient TUGrazPersonRestService tuGrazPersonRestService;
 
   @Inject @RestClient TUGrazProjectRestService tuGrazProjectRestService;
 

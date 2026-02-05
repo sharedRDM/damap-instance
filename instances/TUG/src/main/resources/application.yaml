@@ -28,33 +28,43 @@ damap:
   fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
-  # Optional: Elsevier Pure integration (disabled by default). Uncomment and configure if TUG starts using Pure.
-  # projects-service: elsevier-pure
-  # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
-  # elsevier-pure-contributor-role-classifications:
-  #   /dk/atira/pure/member: PROJECT_MEMBER
-  # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
-  # elsevier-pure-backend: http
-  # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
-  # elsevier-pure-api-key: "your API key here"
-  # elsevier-pure-projects-file: "file:///path/to/projects.json"
-  # elsevier-pure-persons-file: "file:///path/to/persons.json"
+
+  # Elsevier Pure integration (TUG). API key and optional endpoint via env (e.g. GitLab CI).
+  projects-service: elsevier-pure
+  elsevier-pure-description-classification: /dk/atira/pure/upmproject/descriptions/projectdescription
+  elsevier-pure-contributor-role-classifications:
+    /dk/atira/pure/upmproject/roles/upmproject/pi: PROJECT_LEADER
+    /dk/atira/pure/upmproject/roles/upmproject/1: PROJECT_LEADER
+    /dk/atira/pure/upmproject/roles/upmproject/copi: PROJECT_LEADER
+    /dk/atira/pure/upmproject/roles/upmproject/8: PROJECT_LEADER
+    /dk/atira/pure/upmproject/roles/upmproject/coi: PROJECT_MEMBER
+    /dk/atira/pure/upmproject/roles/upmproject/6: PROJECT_MEMBER
+    /dk/atira/pure/upmproject/roles/upmproject/7: PROJECT_MEMBER
+  elsevier-pure-project-lead-role-classification: /dk/atira/pure/upmproject/roles/upmproject/pi
+  elsevier-pure-backend: http
+  elsevier-pure-endpoint-url: ${DAMAP_ELSEVIER_PURE_ENDPOINT_URL:https://tugraz-staging.elsevierpure.com/ws/api}
+  elsevier-pure-api-key: ${DAMAP_ELSEVIER_PURE_API_KEY}
+  use-tugraz-pure-api: true
+  tugraz:
+    pure:
+      test-user-id: "18fb01c4-5801-468b-8818-43bde001f43d"
+      recommended-ignore-user-filter: true
+    api:
+      auth:
+        url: ${DAMAP_TUGRAZ_API_AUTH_URL:https://auth.tugraz.at/auth/realms/tugraz/protocol/openid-connect/token}
+        client: ${DAMAP_TUGRAZ_API_AUTH_CLIENT}
+        secret: ${DAMAP_TUGRAZ_API_AUTH_SECRET}
+
   person-services:
     - display-text: "University"
       query-value: "UNIVERSITY"
       class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
     - display-text: "ORCID"
       query-value: "ORCID"
-      class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl" 
-    # - display-text: "Pure"
-    #   query-value: "PURE"
-    #   class-name: "org.damap.base.integration.pure.PurePersonService"
-  tugraz:
-    api:
-      auth:
-        url: https://auth-demo.tugraz.at/auth/realms/tugraz-vpu/protocol/openid-connect/token
-        client: "client"
-        secret: "secret"
+      class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl"
+    - display-text: "Pure"
+      query-value: "PURE"
+      class-name: "at.tugraz.damap.integration.pure.TUGrazPurePersonService"
 
 invenio:
   disabled: true
@@ -113,6 +123,12 @@ quarkus:
     always-include: true # set to false if swagger-ui should only be available in dev mode
     oauth-client-id: ${damap.auth.frontend.client}
 
+  rest-client:
+    elsevier-pure:
+      url: ${damap.elsevier-pure-endpoint-url}
+      connect-timeout: 10000
+      read-timeout: 60000
+
 rest:
   projects/mp-rest/url: ${damap.projects-url}
   persons/mp-rest/url: ${damap.persons-url}
@@ -125,6 +141,10 @@ rest:
   openaire/mp-rest/url: http://api.openaire.eu/search/
   orcid:
     search/mp-rest/url: https://pub.orcid.org
+  elsevier-pure/mp-rest/url: ${damap.elsevier-pure-endpoint-url}
+  elsevier-pure/mp-rest/scope: jakarta.inject.Singleton
+  elsevier-pure/mp-rest/connectTimeout: 10000
+  elsevier-pure/mp-rest/readTimeout: 60000
   tugraz:
     api:
       auth/mp-rest/url: ${damap.tugraz.api.auth.url}
@@ -135,6 +155,9 @@ rest:
     auth:
       backend:
         url: http://localhost:8087/realms/damap # https://your.authentication.server
+      frontend:
+        url: http://localhost:8087/realms/damap
+        client: "damap"
     datasource:
       url: jdbc:postgresql://localhost:8088/damap
       username: damap
@@ -143,6 +166,32 @@ rest:
     persons-url: http://localhost:8091
     fits-url: http://localhost:8089/fits
     gotenberg-url: http://localhost:3000
+    projects-service: elsevier-pure
+    elsevier-pure-backend: http
+    elsevier-pure-endpoint-url: ${DAMAP_ELSEVIER_PURE_ENDPOINT_URL:https://tugraz-staging.elsevierpure.com/ws/api}
+    elsevier-pure-api-key: ${DAMAP_ELSEVIER_PURE_API_KEY}
+    use-tugraz-pure-api: true
+    tugraz:
+      pure:
+        test-user-id: "18fb01c4-5801-468b-8818-43bde001f43d"
+        recommended-ignore-user-filter: true
+    person-services:
+      - display-text: "University"
+        query-value: "UNIVERSITY"
+        class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
+      - display-text: "ORCID"
+        query-value: "ORCID"
+        class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl"
+      - display-text: "Pure"
+        query-value: "PURE"
+        class-name: "at.tugraz.damap.integration.pure.TUGrazPurePersonService"
+
+  quarkus:
+    oidc:
+      client-id: ${damap.auth.frontend.client}
+    rest-client:
+      elsevier-pure:
+        url: ${damap.elsevier-pure-endpoint-url}
 
 "%oracle":
   quarkus:
