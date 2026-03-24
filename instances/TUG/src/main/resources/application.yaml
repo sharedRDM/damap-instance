@@ -6,7 +6,7 @@ damap:
   auth:
     backend:
       url: http://keycloak:8080/realms/damap # https://your.authentication.server
-      client: "damap-be" # your-backend-authentication-client-id
+      client: "damap" # your-backend-authentication-client-id
     frontend:
       url: http://localhost:8087/realms/damap # usually the same as the backend url
       client: "damap" # your-frontend-authentication-client-id
