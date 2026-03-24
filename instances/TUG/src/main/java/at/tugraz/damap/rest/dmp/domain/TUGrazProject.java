@@ -18,9 +18,9 @@ public class TUGrazProject {
   @Size(max = 255)
   private String name;
 
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private Date startDate;
 
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private Date endDate;
 }
