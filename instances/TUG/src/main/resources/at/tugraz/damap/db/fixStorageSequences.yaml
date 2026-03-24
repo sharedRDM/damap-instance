@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: "at/tugraz/damap/fixStorageSequences"
+      author: lpandath
+      dbms: postgresql
+      comment: >-
+        Advance internal_storage_seq and inter_storage_translation_seq past the hardcoded TUG
+        storage entries (IDs 1-3 and 1-6 respectively) inserted by addInstitutionalStorage.yaml.
+        Without this fix, Hibernate's pooled-lo strategy allocates IDs starting from 1 and
+        conflicts with the existing rows, causing a 500 error when an admin adds a storage option.
+      changes:
+        - sql:
+            sql: >-
+              SELECT SETVAL('internal_storage_seq'::regclass,
+                GREATEST(51, (SELECT COALESCE(MAX(id), 0) + 1 FROM internal_storage))::bigint,
+                false)
+        - sql:
+            sql: >-
+              SELECT SETVAL('inter_storage_translation_seq'::regclass,
+                GREATEST(51, (SELECT COALESCE(MAX(id), 0) + 1 FROM inter_storage_translation))::bigint,
+                false)
+      rollback:
+        - sql:
+            sql: "-- No rollback: resetting sequences could break existing data"
