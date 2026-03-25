@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
-## [4.7.0] - 2026-01-12
+## [4.7.0] - 2026-03-25
+
+### Fixed (TUG)
+- Fixed 500 error when admin adds a storage option: added `fixStorageSequences.yaml` migration to advance `internal_storage_seq` and `inter_storage_translation_seq` past the hardcoded TUG storage entries, preventing Hibernate pooled-lo sequence conflicts.
+- Updated `TUGrazProject` date deserialization pattern from `yyyy-MM-dd'T'HH:mm:ssXXX` to `yyyy-MM-dd` to match the updated TUG Relay Base-Research-Project API response format.
 
 ### Added
 - Documented optional Elsevier Pure configuration hints for TUG instance (commented in `instances/TUG/src/main/resources/application.yaml`).
