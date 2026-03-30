@@ -6,13 +6,16 @@ damap:
   auth:
     backend:
       url: http://keycloak:8080/realms/damap # https://your.authentication.server
-      client: 'damap-be' # your-backend-authentication-client-id
+      client: 'damap' # your-backend-authentication-client-id
     frontend:
       url: http://localhost:8087/realms/damap # usually the same as the backend url
       client: 'damap' # your-frontend-authentication-client-id
     scope: 'openid profile email offline_access microprofile-jwt roles personID' # your-backend-authentication-scope, including your variable for your user IDs
     user: 'personID' # the variable name for your user IDs
   datasource:
+    # Default local/compose values. If you deploy via docker-compose, stick to the reverted env var names from base:
+    # DAMAP_DATASOURCE_URL, DAMAP_DATASOURCE_USERNAME, DAMAP_DATASOURCE_PASSWORD,
+    # DAMAP_DATASOURCE_DB_KIND, DAMAP_DATASOURCE_DRIVER, DAMAP_DATASOURCE_DIALECT.
     url: jdbc:postgresql://damap-db:5432/damap # jdbc:your-datasource-language:your-datasource.address
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
@@ -24,6 +27,7 @@ damap:
   persons-url: https://api-test.medunigraz.at/v1/campusonline/person
   fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
+  re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
   person-services:
     - display-text: 'University'
       query-value: 'UNIVERSITY'
@@ -70,13 +74,22 @@ quarkus:
   cache:
     caffeine:
       "repositories":
-        expire-after-write: P1D
+        enabled: ${DAMAP_CACHE_REPOSITORIES_ENABLED:false}
+        expire-after-write: ${DAMAP_CACHE_EXPIRE_AFTER_WRITE:P1D}
       "repository":
-        expire-after-write: P1D
+        enabled: ${DAMAP_CACHE_REPOSITORY_ENABLED:false}
+        expire-after-write: ${DAMAP_CACHE_EXPIRE_AFTER_WRITE:P1D}
 
   liquibase:
     migrate-at-start: true
     change-log: at/medunigraz/damap/db/mainChangeLog.yaml
+
+  smallrye-openapi:
+    info-title: DAMAP API
+
+  swagger-ui:
+    always-include: true # set to false if swagger-ui should only be available in dev mode
+    oauth-client-id: ${damap.auth.frontend.client}
 
   rest-client:
     follow-redirects: true
@@ -86,8 +99,10 @@ rest:
   persons/mp-rest/url: ${damap.persons-url}
   fits/mp-rest/url: ${damap.fits-url}
   r3data:
-    repositories/mp-rest/url: https://www.re3data.org/api
+    repositories/mp-rest/url: ${damap.re3data-url}
+    repository/mp-rest/url: ${damap.re3data-url}
     repositories/mp-rest/scope: jakarta.inject.Singleton
+    repository/mp-rest/scope: jakarta.inject.Singleton
   openaire/mp-rest/url: http://api.openaire.eu/search/
   orcid:
     search/mp-rest/url: https://pub.orcid.org
@@ -106,6 +121,22 @@ rest:
     persons-url: http://localhost:8091
     fits-url: http://localhost:8089/fits
     gotenberg-url: http://localhost:3000
+  quarkus:
+    oidc:
+      auth-server-url: http://localhost:8087/realms/damap
+      client-id: damap
+      token:
+        issuer: http://localhost:8087/realms/damap
+    datasource:
+      db-kind: postgresql
+      jdbc:
+        url: jdbc:postgresql://localhost:8088/damap
+      username: damap
+      password: pw4damap
+    http:
+      cors:
+        ~: true
+        origins: http://localhost:4200
 
 "%oracle":
   quarkus:
@@ -125,6 +156,13 @@ rest:
   damap:
     repositories:
       recommendation: ['r3d100010468'] # Re3Data id(s)
+    auth:
+      backend:
+        url: http://localhost:8087/realms/damap
+        client: damap
+      frontend:
+        url: http://localhost:8087/realms/damap
+        client: damap
   quarkus:
     datasource:
       db-kind: h2

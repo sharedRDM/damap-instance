@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test;
 class ConfigResourceTest {
 
   @ConfigProperty(name = "damap.auth.frontend.url")
-  String authUrl;
+  String issuer;
 
   @Test
   void testGetConfigEndpoint() {
-    given().when().get().then().statusCode(200).body("authUrl", is(authUrl));
+    given().when().get().then().statusCode(200).body("issuer", is(issuer));
   }
 }
