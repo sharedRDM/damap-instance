@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
-## [4.7.0] - 2026-03-25
+## [4.7.0-mug] - 2026-03-30
 
-### Fixed (TUG)
-- Fixed 500 error when admin adds a storage option: added `fixStorageSequences.yaml` migration to advance `internal_storage_seq` and `inter_storage_translation_seq` past the hardcoded TUG storage entries, preventing Hibernate pooled-lo sequence conflicts.
-- Updated `TUGrazProject` date deserialization pattern from `yyyy-MM-dd'T'HH:mm:ssXXX` to `yyyy-MM-dd` to match the updated TUG Relay Base-Research-Project API response format.
+### Changed
+
+- Migration to DAMAP core version v4.7.0
+- Updated `ConfigResourceTest` to use new `issuer` field name (renamed from `authUrl` in v4.7.0)
+
+### Fixed
+
+- Storage options cannot be permanently deleted
+
+## [4.7.0] - 2026-01-12
 
 ### Added
 - Documented optional Elsevier Pure configuration hints for TUG instance (commented in `instances/TUG/src/main/resources/application.yaml`).
@@ -20,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated TUG base dependency to 4.7.0 and module version to 4.7.0.
 - Upgraded Apache POI / POI-OOXML to 5.4.0 for TUG.
 - Datasource env var naming - revert note in TUG config comments.
+
+### Fixed (TUG)
+- Fixed 500 error when admin adds a storage option: added `fixStorageSequences.yaml` migration to advance `internal_storage_seq` and `inter_storage_translation_seq` past the hardcoded TUG storage entries, preventing Hibernate pooled-lo sequence conflicts.
+- Updated `TUGrazProject` date deserialization pattern from `yyyy-MM-dd'T'HH:mm:ssXXX` to `yyyy-MM-dd` to match the updated TUG Relay Base-Research-Project API response format.
 
 ### Notes
 - Keycloak image provider switch and Quarkus reaugmentation are handled in base/Docker; no TUG config changes required.
