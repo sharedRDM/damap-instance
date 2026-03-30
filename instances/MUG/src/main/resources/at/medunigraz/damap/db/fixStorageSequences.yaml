@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: "at/medunigraz/damap/fixStorageSequences"
+      author: Laura Thaci
+      dbms: postgresql
+      comment: >-
+        Advance internal_storage_seq and inter_storage_translation_seq past the
+        MUG storage entries inserted by createMUGStorage.yaml.
+        Without this fix, Hibernate's pooled-lo strategy allocates IDs starting
+        from 1 and conflicts with the existing rows, causing a 500 error when an
+        admin adds a new storage option.
+      changes:
+        - sql:
+            sql: >-
+              SELECT SETVAL('internal_storage_seq'::regclass,
+                GREATEST(51, (SELECT COALESCE(MAX(id), 0) + 1 FROM internal_storage))::bigint,
+                false)
+        - sql:
+            sql: >-
+              SELECT SETVAL('inter_storage_translation_seq'::regclass,
+                GREATEST(51, (SELECT COALESCE(MAX(id), 0) + 1 FROM inter_storage_translation))::bigint,
+                false)
+      rollback:
+        - sql:
+            sql: "-- No rollback: resetting sequences could break existing data"

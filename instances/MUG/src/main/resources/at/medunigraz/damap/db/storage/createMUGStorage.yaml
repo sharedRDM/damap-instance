@@ -12,8 +12,8 @@ databaseChangeLog:
     
   - changeSet:
       id: mug_create_storage_1
-      author: David Eckhard
-      runAlways: true
+      author: Laura Thaci
+      validCheckSum: "ANY"
       changes:
         - sql:
             dbms:  '!h2, postgresql'
