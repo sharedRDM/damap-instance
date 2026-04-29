@@ -1,0 +1,78 @@
+services:
+  damap-be:
+    build:
+      context: ../damap-instance
+      dockerfile: Dockerfile
+      args:
+        INSTANCE_NAME: JKU
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - damap-db
+      - keycloak
+      - api-mock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health/live"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    environment:
+      DAMAP_ENV: DEV
+      DAMAP_ORIGINS: http://localhost:8000,http://localhost:8080,http://localhost:4200
+      DAMAP_FITS_URL: http://fits-service:8080/fits
+      DAMAP_GOTENBERG_URL: http://gotenberg:3000
+      DAMAP_TITLE: "JKU Demo instance"
+
+  damap-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: damap
+      POSTGRES_PASSWORD: pw4damap
+      POSTGRES_DB: damap
+    ports:
+      - "8088:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U damap -d damap"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+  keycloak:
+    image: keycloak/keycloak:26.2
+    command: start-dev --import-realm
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+    ports:
+      - "8087:8080"
+    volumes:
+      - ./keycloak/sample-damap-realm-export.json:/opt/keycloak/data/import/sample-damap-realm-export.json
+
+  keycloak-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+
+  api-mock:
+    image: clue/json-server
+    restart: unless-stopped
+    command: db.json --routes routes.json
+    volumes:
+      - ./api-mock/data/db.json:/data/db.json
+      - ./api-mock/data/routes.json:/data/routes.json
+    ports:
+      - "8091:80"
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports:
+      - "3000:3000"
