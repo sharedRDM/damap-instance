@@ -37,9 +37,36 @@ on:
         default: ''
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      mug: ${{ steps.filter.outputs.mug }}
+      tug: ${{ steps.filter.outputs.tug }}
+      jku: ${{ steps.filter.outputs.jku }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Detect changed instances
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            mug:
+              - 'instances/MUG/**'
+            tug:
+              - 'instances/TUG/**'
+            jku:
+              - 'instances/JKU/**'
+
   build-backend-mug:
-    runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'MUG' }}
+    needs: detect-changes
+    runs-on: ubuntu-24.04
+    if: |
+      (github.event_name == 'push' && needs.detect-changes.outputs.mug == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.instance == 'all' || github.event.inputs.instance == 'MUG'))
     permissions:
       contents: read
       packages: write
@@ -53,7 +80,7 @@ jobs:
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Determine Docker tag (from tag or branch)
+      - name: Determine Docker tag
         id: get_tag
         run: |
           if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
@@ -100,8 +127,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-backend-tug:
-    runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'TUG' }}
+    needs: detect-changes
+    runs-on: ubuntu-24.04
+    if: |
+      (github.event_name == 'push' && needs.detect-changes.outputs.tug == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.instance == 'all' || github.event.inputs.instance == 'TUG'))
     permissions:
       contents: read
       packages: write
@@ -115,7 +145,7 @@ jobs:
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Determine Docker tag (from tag or branch)
+      - name: Determine Docker tag
         id: get_tag
         run: |
           if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
@@ -162,8 +192,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-backend-jku:
-    runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.instance == 'all' || github.event.inputs.instance == 'JKU' }}
+    needs: detect-changes
+    runs-on: ubuntu-24.04
+    if: |
+      (github.event_name == 'push' && needs.detect-changes.outputs.jku == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.instance == 'all' || github.event.inputs.instance == 'JKU'))
     permissions:
       contents: read
       packages: write
@@ -177,7 +210,7 @@ jobs:
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Determine Docker tag (from tag or branch)
+      - name: Determine Docker tag
         id: get_tag
         run: |
           if [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
