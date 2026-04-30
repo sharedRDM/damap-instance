@@ -1,10 +1,6 @@
 services:
   damap-be:
-    build:
-      context: ../damap-instance
-      dockerfile: Dockerfile
-      args:
-        INSTANCE_NAME: JKU
+    image: ghcr.io/sharedrdm/damap-instance:4.7.0-jku
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -23,6 +19,14 @@ services:
       DAMAP_FITS_URL: http://fits-service:8080/fits
       DAMAP_GOTENBERG_URL: http://gotenberg:3000
       DAMAP_TITLE: "JKU Demo instance"
+
+  damap-fe:
+    image: ghcr.io/sharedrdm/damap-frontend-jku:4.7.0
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - damap-be
 
   damap-db:
     image: postgres:16
