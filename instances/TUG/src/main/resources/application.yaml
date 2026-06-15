@@ -20,32 +20,46 @@ damap:
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
     db-kind: postgresql # your database
-  repositories:
-    # TU Graz repository
-    recommendation: ["r3d100013565"]
+  # NOTE (v5): recommended repositories are now DB-backed and managed via the Admin UI
+  # Admin -> Recommended Repositories. The old `damap.repositories.recommendation` key is
+  # no longer read.
   projects-url: https://api.tugraz.at/base/research-projects
   persons-url: https://api.tugraz.at/base/people
   fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
-  # Optional: Elsevier Pure integration (disabled by default). Uncomment and configure if TUG starts using Pure.
-  # projects-service: elsevier-pure
-  # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
-  # elsevier-pure-contributor-role-classifications:
-  #   /dk/atira/pure/member: PROJECT_MEMBER
-  # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
-  # elsevier-pure-backend: http
-  # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
-  # elsevier-pure-api-key: "your API key here"
-  # elsevier-pure-projects-file: "file:///path/to/projects.json"
-  # elsevier-pure-persons-file: "file:///path/to/persons.json"
-  person-services:
-    - display-text: "University"
-      query-value: "UNIVERSITY"
-      class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
-    - display-text: "ORCID"
-      query-value: "ORCID"
-      class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl" 
+
+  # v5: per-tenant settings are now read via a config mapping under `damap.tenant-aware.*`.
+  # In single-tenant (standalone) mode this is simply our normal config. Settings that used to
+  # sit at the `damap.*` top level (project-service, person-services, elsevier-pure-*) must live
+  # here now, otherwise they are silently ignored.
+  tenant-aware:
+    # We use our own TU Graz person/project API (NOT Pure) -> default project service.
+    project-service: default
+
+    # Person lookup services, still registered here in config (env-variable based registration
+    # is planned for v5.1). Our custom TU Graz person service stays registered here, as before.
+    person-services:
+      - display-text: "University"
+        query-value: "UNIVERSITY"
+        class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
+      - display-text: "ORCID"
+        query-value: "ORCID"
+        class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl"
+
+    # Optional: Elsevier Pure integration disabled by default. Uncomment if TUG starts using Pure.
+    # project-service: elsevier-pure
+    # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
+    # elsevier-pure-contributor-role-classifications:
+    #   - pure-role-uri: /dk/atira/pure/member
+    #     contributor-role: PROJECT_MEMBER
+    # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
+    # elsevier-pure-backend: http
+    # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
+    # elsevier-pure-api-key: "your API key here"
+    # elsevier-pure-projects-file: "file:///path/to/projects.json"
+    # elsevier-pure-persons-file: "file:///path/to/persons.json"
+    #   and add to person-services above:
     # - display-text: "Pure"
     #   query-value: "PURE"
     #   class-name: "org.damap.base.integration.pure.PurePersonService"
