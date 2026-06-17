@@ -143,6 +143,9 @@ rest:
   tugraz:
     api:
       auth/mp-rest/url: ${damap.tugraz.api.auth.url}
+  # OSTrails FAIR DMP-evaluation (experimental). Empty = feature off/hidden in the frontend.
+  # Set DAMAP_EVALUATION_URL to enable (e.g. https://ostrails-dmp-evaluation.arisnet.ac.at).
+  evaluation/mp-rest/url: ${DAMAP_EVALUATION_URL:}
 
 "%dev":
   damap:
@@ -202,10 +205,6 @@ rest:
     #       contributor-role: PROJECT_MEMBER
     #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/5
     #       contributor-role: OTHER
-  rest:
-    # LOCAL test of the OSTrails FAIR DMP-evaluation feature (experimental in v5).
-    # Empty URL = feature hidden in the frontend; this enables the "assess" check in dev only.
-    evaluation/mp-rest/url: https://ostrails-dmp-evaluation.arisnet.ac.at
 
 "%oracle":
   quarkus:
