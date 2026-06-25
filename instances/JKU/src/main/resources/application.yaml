@@ -11,28 +11,49 @@ damap:
       url: http://localhost:8087/realms/damap # usually the same as the backend url
       client: 'damap' # your-frontend-authentication-client-id
     scope: 'openid profile email offline_access microprofile-jwt roles personID' # your-backend-authentication-scope, including your variable for your user IDs
-    user: 'personID' # the variable name for your user IDs
+    user-id-claim: 'personID' # v5 key (was `user` in v4)
+    # v5: read admin role from Keycloak CLIENT roles
+    user-roles-claim-path: 'resource_access/${damap.auth.backend.client}/roles'
   datasource:
     url: jdbc:postgresql://damap-db:5432/damap # jdbc:your-datasource-language:your-datasource.address
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
     db-kind: postgresql # your database
-  repositories:
-    # Zenodo, Open Science Framework, DRYAD, Mendeley Data
-    # can also be [] for no repositories recommendation
-    recommendation: ['r3d100010468', 'r3d100011137', 'r3d100000044', 'r3d100011868'] # your-recommended-repositories
+  # NOTE v5: recommended repositories are now DB-backed and managed via the Admin UI
+  # (Admin -> Recommended Repositories). The old `damap.repositories.recommendation` key is
+  # no longer read.
   projects-url: http://api-mock:80
   persons-url: http://api-mock:80
-  fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
-  person-services:
-    - display-text: 'University'
-      query-value: 'UNIVERSITY'
-      class-name: 'org.damap.base.rest.persons.MockUniversityPersonServiceImpl'
-    - display-text: 'ORCID'
-      query-value: 'ORCID'
-      class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
+
+  # v5: per-tenant settings live under `damap.tenant-aware.*`. In standalone mode this is
+  # just our normal config. `person-services` and `project-service` must live here now or
+  # they are silently ignored.
+  tenant-aware:
+    # JKU uses Elsevier Pure (https://research.jku.at) as the project source.
+    # API key MUST be supplied via the `PURE_API_KEY` env var at deploy time 
+    project-service: elsevier-pure
+    elsevier-pure-backend: http
+    elsevier-pure-endpoint-url: "https://research.jku.at/ws/api"
+    elsevier-pure-api-key: ${PURE_API_KEY:}
+    elsevier-pure-description-classification: /dk/atira/pure/upmproject/descriptions/projectdescription
+    elsevier-pure-project-lead-role-classification: /dk/atira/pure/upmproject/roles/upmproject/pi
+    elsevier-pure-contributor-role-classifications:
+      - pure-role-uri: /dk/atira/pure/activity/roles/membership
+        contributor-role: PRINCIPAL_INVESTIGATOR
+    person-services:
+      # 'University' service disabled — no custom JKU directory API yet.
+      # ORCID disabled — JKU only wants Pure in the person-search dropdown.
+      # - display-text: 'University'
+      #   query-value: 'UNIVERSITY'
+      #   class-name: 'org.damap.base.rest.persons.MockUniversityPersonServiceImpl'
+      # - display-text: 'ORCID'
+      #   query-value: 'ORCID'
+      #   class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
+      - display-text: 'Pure'
+        query-value: 'PURE'
+        class-name: 'org.damap.base.integration.pure.PurePersonService'
 
 invenio:
   disabled: true
@@ -46,7 +67,7 @@ quarkus:
       origins: ${damap.origins}
       headers: origin,content-type,accept,authorization
       access-control-max-age: 1
-    # needed for the fits service. Specify how large a single file for upload may be.
+    # max upload size for in-process file analysis - Apache Tika
     limits:
       max-body-size: 10M
 
@@ -94,7 +115,6 @@ quarkus:
 rest:
   projects/mp-rest/url: ${damap.projects-url}
   persons/mp-rest/url: ${damap.persons-url}
-  fits/mp-rest/url: ${damap.fits-url}
   r3data:
     repositories/mp-rest/url: ${damap.re3data-url}
     repository/mp-rest/url: ${damap.re3data-url}
@@ -116,7 +136,6 @@ rest:
       password: pw4damap
     projects-url: http://localhost:8091
     persons-url: http://localhost:8091
-    fits-url: http://localhost:8089/fits
     gotenberg-url: http://localhost:3000
 
 "%oracle":
@@ -134,9 +153,6 @@ rest:
       dialect: org.hibernate.dialect.PostgreSQLDialect
 
 "%test":
-  damap:
-    repositories:
-      recommendation: ['r3d100010468'] # Re3Data id(s)
   quarkus:
     datasource:
       db-kind: h2
