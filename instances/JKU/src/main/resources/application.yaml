@@ -44,13 +44,12 @@ damap:
         contributor-role: PRINCIPAL_INVESTIGATOR
     person-services:
       # 'University' service disabled — no custom JKU directory API yet.
-      # ORCID disabled — JKU only wants Pure in the person-search dropdown.
       # - display-text: 'University'
       #   query-value: 'UNIVERSITY'
       #   class-name: 'org.damap.base.rest.persons.MockUniversityPersonServiceImpl'
-      # - display-text: 'ORCID'
-      #   query-value: 'ORCID'
-      #   class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
+      - display-text: 'ORCID'
+        query-value: 'ORCID'
+        class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
       - display-text: 'Pure'
         query-value: 'PURE'
         class-name: 'org.damap.base.integration.pure.PurePersonService'
