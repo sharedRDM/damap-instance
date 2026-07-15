@@ -11,7 +11,9 @@ damap:
       url: http://localhost:8087/realms/damap # usually the same as the backend url
       client: 'damap' # your-frontend-authentication-client-id
     scope: 'openid profile email offline_access microprofile-jwt roles personID' # your-backend-authentication-scope, including your variable for your user IDs
-    user: 'personID' # the variable name for your user IDs
+    user-id-claim: 'personID' # v5 key (was `user` in v4)
+    # v5: read admin role from Keycloak CLIENT roles
+    user-roles-claim-path: 'resource_access/${damap.auth.backend.client}/roles'
   datasource:
     # Default local/compose values. If you deploy via docker-compose, stick to the reverted env var names from base:
     # DAMAP_DATASOURCE_URL, DAMAP_DATASOURCE_USERNAME, DAMAP_DATASOURCE_PASSWORD,
@@ -20,26 +22,51 @@ damap:
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
     db-kind: postgresql # your database
-  repositories:
-    # Set to an invalid vlaue, as an empty list is currently not possible
-    recommendation: ['invalid-value'] # your-recommended-repositories
-  projects-url: https://api-test.medunigraz.at/v1/research/project
+  # NOTE v5: recommended repositories are now DB-backed and managed via the Admin UI
+  # (Admin -> Recommended Repositories). The old `damap.repositories.recommendation` key is
+  # no longer read.
   persons-url: https://api-test.medunigraz.at/v1/campusonline/person
-  fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
-  person-services:
-    - display-text: 'University'
-      query-value: 'UNIVERSITY'
-      class-name: 'at.medunigraz.damap.rest.persons.MUGPersonServiceImpl'
-    - display-text: 'ORCID'
-      query-value: 'ORCID'
-      class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
-  
+
+  # v5: per-tenant settings live under `damap.tenant-aware.*`. In standalone mode this is
+  # just our normal config. `person-services` and `project-service` must live here now or
+  # they are silently ignored.
+  tenant-aware:
+    # MUG reads projects from Elsevier Pure (RIS): only publicly visible projects are
+    # exposed through the API key. API key MUST be supplied via the `PURE_API_KEY` env
+    # var at deploy time.
+    project-service: elsevier-pure
+    elsevier-pure-backend: http
+    elsevier-pure-endpoint-url: 'https://ris.medunigraz.at/ws/api'
+    elsevier-pure-api-key: ${PURE_API_KEY:}
+    elsevier-pure-description-classification: /dk/atira/pure/upmproject/descriptions/projectdescription
+    # MUG project roles (per MUG Forschungsdokumentation): pi, copi, coi
+    elsevier-pure-project-lead-role-classification: /dk/atira/pure/upmproject/roles/upmproject/pi
+    elsevier-pure-contributor-role-classifications:
+      - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/pi
+        contributor-role: PRINCIPAL_INVESTIGATOR
+      - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/copi
+        contributor-role: PRINCIPAL_INVESTIGATOR
+      - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/coi
+        contributor-role: RESEARCHER
+    person-services:
+      # MedUni person DB stays until Pure is confirmed to cover ALL persons (not only
+      # users with accounts) — then this entry and the MUG person java code can go.
+      - display-text: 'University'
+        query-value: 'UNIVERSITY'
+        class-name: 'at.medunigraz.damap.rest.persons.MUGPersonServiceImpl'
+      - display-text: 'ORCID'
+        query-value: 'ORCID'
+        class-name: 'org.damap.base.integration.orcid.ORCIDPersonServiceImpl'
+      - display-text: 'Pure'
+        query-value: 'PURE'
+        class-name: 'org.damap.base.integration.pure.PurePersonService'
+
   mug:
     api:
       auth:
-        token: "" # set to your auth token (e.g. `Token: a-token`)
+        token: '' # set to your auth token (e.g. `Token: a-token`)
 
 # general config settings
 quarkus:
@@ -49,7 +76,7 @@ quarkus:
       origins: ${damap.origins}
       headers: origin,content-type,accept,authorization
       access-control-max-age: 1
-    # needed for the fits service. Specify how large a single file for upload may be.
+    # max upload size for in-process file analysis - Apache Tika
     limits:
       max-body-size: 10M
 
@@ -95,9 +122,7 @@ quarkus:
     follow-redirects: true
 
 rest:
-  projects/mp-rest/url: ${damap.projects-url}
   persons/mp-rest/url: ${damap.persons-url}
-  fits/mp-rest/url: ${damap.fits-url}
   r3data:
     repositories/mp-rest/url: ${damap.re3data-url}
     repository/mp-rest/url: ${damap.re3data-url}
@@ -106,6 +131,9 @@ rest:
   openaire/mp-rest/url: http://api.openaire.eu/search/
   orcid:
     search/mp-rest/url: https://pub.orcid.org
+  # OSTrails FAIR DMP-evaluation (experimental). Empty = feature off/hidden in the frontend.
+  # Set DAMAP_EVALUATION_URL to enable (e.g. https://ostrails-dmp-evaluation.arisnet.ac.at).
+  evaluation/mp-rest/url: ${DAMAP_EVALUATION_URL:}
 
 "%dev":
   damap:
@@ -113,13 +141,14 @@ rest:
     auth:
       backend:
         url: http://localhost:8087/realms/damap # https://your.authentication.server
+    tenant-aware:
+      # dummy default so quarkus:dev starts without the real key; export PURE_API_KEY to test Pure
+      elsevier-pure-api-key: ${PURE_API_KEY:dev-placeholder}
     datasource:
       url: jdbc:postgresql://localhost:8088/damap
       username: damap
       password: pw4damap
-    projects-url: http://localhost:8091
     persons-url: http://localhost:8091
-    fits-url: http://localhost:8089/fits
     gotenberg-url: http://localhost:3000
   quarkus:
     oidc:
@@ -154,8 +183,6 @@ rest:
 
 "%test":
   damap:
-    repositories:
-      recommendation: ['r3d100010468'] # Re3Data id(s)
     auth:
       backend:
         url: http://localhost:8087/realms/damap
@@ -163,6 +190,9 @@ rest:
       frontend:
         url: http://localhost:8087/realms/damap
         client: damap
+    tenant-aware:
+      # the strict v5 config mapping rejects an empty api key at startup
+      elsevier-pure-api-key: test-api-key
   quarkus:
     datasource:
       db-kind: h2
