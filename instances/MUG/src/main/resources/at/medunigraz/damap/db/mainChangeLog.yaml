@@ -5,3 +5,5 @@ databaseChangeLog:
       file: at/medunigraz/damap/db/storage/createMUGStorage.yaml # insert MUG specific storage
   - include:
       file: at/medunigraz/damap/db/fixStorageSequences.yaml # sequences past hardcoded storage IDs
+  - include:
+      file: at/medunigraz/damap/db/mugTranslations.yaml # seed mug.* keys used by the MUG frontend
