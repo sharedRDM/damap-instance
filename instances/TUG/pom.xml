@@ -15,7 +15,7 @@
   <!-- TUG-specific identity -->
   <groupId>at.tugraz</groupId>
   <artifactId>damap</artifactId>
-  <version>5.0.0</version>
+  <version>5.0.1</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A tool for machine actionable DMPs.</description>
@@ -29,7 +29,6 @@
   </licenses>
 
   <properties>
-    <!-- TUG uses SNAPSHOT to get latest updates -->
     <damap.base.version>${damap.base.version.tug}</damap.base.version>
     
     <!-- TUG-specific properties -->
