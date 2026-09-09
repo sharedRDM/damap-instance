@@ -11,7 +11,10 @@ damap:
       url: http://localhost:8087/realms/damap # usually the same as the backend url
       client: "damap" # your-frontend-authentication-client-id
     scope: "openid profile email offline_access microprofile-jwt roles personID" # your-backend-authentication-scope, including your variable for your user IDs
-    user: "personID" # the variable name for your user IDs
+    user-id-claim: "personID" # v5 key (was `user` in v4)
+    # Our "Damap Admin" role is a Keycloak CLIENT role (resource_access.<client>.roles), not a
+    # realm role. v5 reads this path for both backend authz and the frontend admin menu.
+    user-roles-claim-path: "resource_access/${damap.auth.backend.client}/roles"
   datasource:
     # Default local/compose values. If you deploy via docker-compose, stick to the reverted env var names from base:
     # DAMAP_DATASOURCE_URL, DAMAP_DATASOURCE_USERNAME, DAMAP_DATASOURCE_PASSWORD,
@@ -20,32 +23,45 @@ damap:
     username: damap # your-datasource-username
     password: pw4damap # your-datasource-password
     db-kind: postgresql # your database
-  repositories:
-    # TU Graz repository
-    recommendation: ["r3d100013565"]
+  # NOTE (v5): recommended repositories are now DB-backed and managed via the Admin UI
+  # Admin -> Recommended Repositories. The old `damap.repositories.recommendation` key is
+  # no longer read.
   projects-url: https://api.tugraz.at/base/research-projects
   persons-url: https://api.tugraz.at/base/people
-  fits-url: http://fits-service:8080/fits
   gotenberg-url: ${DAMAP_GOTENBERG_URL}
   re3data-url: ${DAMAP_RE3DATA_URL:https://www.re3data.org/api}
-  # Optional: Elsevier Pure integration (disabled by default). Uncomment and configure if TUG starts using Pure.
-  # projects-service: elsevier-pure
-  # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
-  # elsevier-pure-contributor-role-classifications:
-  #   /dk/atira/pure/member: PROJECT_MEMBER
-  # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
-  # elsevier-pure-backend: http
-  # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
-  # elsevier-pure-api-key: "your API key here"
-  # elsevier-pure-projects-file: "file:///path/to/projects.json"
-  # elsevier-pure-persons-file: "file:///path/to/persons.json"
-  person-services:
-    - display-text: "University"
-      query-value: "UNIVERSITY"
-      class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
-    - display-text: "ORCID"
-      query-value: "ORCID"
-      class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl" 
+
+  # v5: per-tenant settings are now read via a config mapping under `damap.tenant-aware.*`.
+  # In single-tenant (standalone) mode this is simply our normal config. Settings that used to
+  # sit at the `damap.*` top level (project-service, person-services, elsevier-pure-*) must live
+  # here now, otherwise they are silently ignored.
+  # Project & person services are configured via ENV in deployment (DAMAP_TENANT_AWARE_*), to keep
+  # as much config as possible in one place (.env / compose). The custom classes ship in our image;
+  # ENV just selects them. This yaml equivalent is kept here, commented, as a reference / fallback —
+  # uncomment it to run the services from yaml instead of ENV.
+  # tenant-aware:
+  #   project-service: default
+  #   person-services:
+  #     - display-text: "University"
+  #       query-value: "UNIVERSITY"
+  #       class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
+  #     - display-text: "ORCID"
+  #       query-value: "ORCID"
+  #       class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl"
+
+    # Optional: Elsevier Pure integration disabled by default. Uncomment if TUG starts using Pure.
+    # project-service: elsevier-pure
+    # elsevier-pure-description-classification: /dk/atira/pure/projectdescription
+    # elsevier-pure-contributor-role-classifications:
+    #   - pure-role-uri: /dk/atira/pure/member
+    #     contributor-role: PROJECT_MEMBER
+    # elsevier-pure-project-lead-role-classification: /dk/atira/pure/projectlead
+    # elsevier-pure-backend: http
+    # elsevier-pure-endpoint-url: "https://your-pure-instance.elsevierpure.com/ws/api"
+    # elsevier-pure-api-key: "your API key here"
+    # elsevier-pure-projects-file: "file:///path/to/projects.json"
+    # elsevier-pure-persons-file: "file:///path/to/persons.json"
+    #   and add to person-services above:
     # - display-text: "Pure"
     #   query-value: "PURE"
     #   class-name: "org.damap.base.integration.pure.PurePersonService"
@@ -71,7 +87,7 @@ quarkus:
       origins: ${damap.origins}
       headers: origin,content-type,accept,authorization
       access-control-max-age: 1
-    # needed for the fits service. Specify how large a single file for upload may be.
+    # max upload size for in-process file analysis (Apache Tika)
     limits:
       max-body-size: 10M
 
@@ -116,7 +132,6 @@ quarkus:
 rest:
   projects/mp-rest/url: ${damap.projects-url}
   persons/mp-rest/url: ${damap.persons-url}
-  fits/mp-rest/url: ${damap.fits-url}
   r3data:
     repositories/mp-rest/url: ${damap.re3data-url}
     repository/mp-rest/url: ${damap.re3data-url}
@@ -128,6 +143,9 @@ rest:
   tugraz:
     api:
       auth/mp-rest/url: ${damap.tugraz.api.auth.url}
+  # OSTrails FAIR DMP-evaluation (experimental). Empty = feature off/hidden in the frontend.
+  # Set DAMAP_EVALUATION_URL to enable (e.g. https://ostrails-dmp-evaluation.arisnet.ac.at).
+  evaluation/mp-rest/url: ${DAMAP_EVALUATION_URL:}
 
 "%dev":
   damap:
@@ -141,8 +159,52 @@ rest:
       password: pw4damap
     projects-url: http://localhost:8091
     persons-url: http://localhost:8091
-    fits-url: http://localhost:8089/fits
     gotenberg-url: http://localhost:3000
+    # LOCAL Elsevier Pure test (disabled). Uncomment this whole tenant-aware block to retest Pure
+    # against staging: export PURE_API_KEY=... then run quarkus:dev. Switches the project source to
+    # Pure and adds "Pure" to the person-search dropdown. Keep commented — TUG uses its own API.
+    # tenant-aware:
+    #   project-service: elsevier-pure
+    #   person-services:
+    #     - display-text: "University"
+    #       query-value: "UNIVERSITY"
+    #       class-name: "at.tugraz.damap.rest.persons.TUGrazPersonServiceImpl"
+    #     - display-text: "ORCID"
+    #       query-value: "ORCID"
+    #       class-name: "org.damap.base.integration.orcid.ORCIDPersonServiceImpl"
+    #     - display-text: "Pure"
+    #       query-value: "PURE"
+    #       class-name: "org.damap.base.integration.pure.PurePersonService"
+    #   elsevier-pure-backend: http
+    #   elsevier-pure-endpoint-url: https://tugraz-staging.elsevierpure.com/ws/api
+    #   elsevier-pure-api-key: ${PURE_API_KEY}
+    #   elsevier-pure-description-classification: /dk/atira/pure/projectdescription
+    #   elsevier-pure-project-lead-role-classification: /dk/atira/pure/upmproject/roles/upmproject/pi
+    #   elsevier-pure-contributor-role-classifications:
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/copi
+    #       contributor-role: PRINCIPAL_INVESTIGATOR
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/1
+    #       contributor-role: PROJECT_MANAGER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/8
+    #       contributor-role: PROJECT_MANAGER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/coi
+    #       contributor-role: PROJECT_MEMBER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/6
+    #       contributor-role: PROJECT_MEMBER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/7
+    #       contributor-role: PROJECT_MEMBER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/4
+    #       contributor-role: PROJECT_COORDINATOR
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/9
+    #       contributor-role: PROJECT_COORDINATOR
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/10
+    #       contributor-role: PROJECT_COORDINATOR
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/2
+    #       contributor-role: PROJECT_MEMBER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/3
+    #       contributor-role: PROJECT_MEMBER
+    #     - pure-role-uri: /dk/atira/pure/upmproject/roles/upmproject/5
+    #       contributor-role: OTHER
 
 "%oracle":
   quarkus:
