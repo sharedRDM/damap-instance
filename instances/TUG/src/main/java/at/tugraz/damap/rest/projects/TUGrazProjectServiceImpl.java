@@ -25,6 +25,11 @@ public class TUGrazProjectServiceImpl implements ProjectService {
   @Inject @RestClient TUGrazProjectRestService tuGrazProjectRestService;
 
   @Override
+  public String getConfigID() {
+    return "tugraz";
+  }
+
+  @Override
   public ResultList<ProjectDO> search(MultivaluedMap<String, String> queryParams) {
     Search s = Search.fromMap(queryParams);
     List<ProjectDO> projects = List.of();
