@@ -13,10 +13,6 @@ on:
 
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch to build from'
-        required: false
-        default: 'main'
       instance:
         type: choice
         description: 'Choose the backend instance'
@@ -46,8 +42,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Detect changed instances
         uses: dorny/paths-filter@v3
@@ -74,8 +68,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
@@ -139,8 +131,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
@@ -204,8 +194,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Convert repository name to lowercase
         run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
