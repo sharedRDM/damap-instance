@@ -128,7 +128,7 @@ rest:
     repository/mp-rest/url: ${damap.re3data-url}
     repositories/mp-rest/scope: jakarta.inject.Singleton
     repository/mp-rest/scope: jakarta.inject.Singleton
-  openaire/mp-rest/url: http://api.openaire.eu/search/
+  openaire/mp-rest/url: https://api.openaire.eu
   orcid:
     search/mp-rest/url: https://pub.orcid.org
   # OSTrails FAIR DMP-evaluation (experimental). Empty = feature off/hidden in the frontend.
